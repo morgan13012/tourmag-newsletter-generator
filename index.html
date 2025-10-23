@@ -371,7 +371,18 @@
             </div>
             
             <div class="section">
-                <div class="section-title">2. URL de l'Article À LA UNE</div>
+                <div class="section-title">2. Date de Publication</div>
+                <div class="info-box">
+                    <p><strong>📅 Info :</strong> Cette date sera utilisée dans le texte "Édition du..." et dans toutes les URLs.</p>
+                    <p>Format automatique : JJ/MM/AAAA dans le texte, AAAA_MM_JJ dans les URLs.</p>
+                </div>
+                <div class="url-input-container">
+                    <input type="date" id="publication-date" style="flex: 1; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px;" />
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">3. URL de l'Article À LA UNE</div>
                 <div class="info-box">
                     <p><strong>ℹ️ Info :</strong> L'article À LA UNE sera affiché en grand format (700x276).</p>
                     <p>Il récupérera automatiquement : l'image, le titre et le copyright.</p>
@@ -384,7 +395,7 @@
             </div>
             
             <div class="section">
-                <div class="section-title">3. URL du Focus (Article 2)</div>
+                <div class="section-title">4. URL du Focus (Article 2)</div>
                 <div class="info-box">
                     <p><strong>ℹ️ Info :</strong> L'article Focus remplacera l'ARTICLE 2 de votre newsletter.</p>
                     <p>Il affichera : image (338x276), titre, et chapô.</p>
@@ -397,7 +408,7 @@
             </div>
             
             <div class="section">
-                <div class="section-title">4. URLs des Blocs d'Articles (3 par ligne)</div>
+                <div class="section-title">5. URLs des Blocs d'Articles (3 par ligne)</div>
                 <div class="url-input-container">
                     <input type="text" id="url-input" placeholder="https://www.tourmag.com/..." />
                     <button class="btn btn-secondary" onclick="addUrl()">Ajouter</button>
@@ -585,6 +596,12 @@
                 return;
             }
             
+            const publicationDate = document.getElementById('publication-date').value;
+            if (!publicationDate) {
+                alert('⚠️ ERREUR: Veuillez sélectionner une date de publication.\n\nLa date est obligatoire.');
+                return;
+            }
+            
             if (!focusUrl && urls.length === 0) {
                 alert('Veuillez ajouter au moins un Focus ou des articles');
                 return;
@@ -605,6 +622,11 @@
             disableButton();
             
             try {
+                updateProgress(5, 'Application de la date de publication...');
+                
+                // Appliquer la date dans le template
+                let workingTemplate = replaceDateInTemplate(template, publicationDate);
+                
                 updateProgress(10, 'Scraping des articles en cours...');
                 
                 // Construire la liste complète des URLs à scraper
@@ -669,8 +691,6 @@ articles = articles.map(a => ({
                 
                 // Afficher l'aperçu
                 showPreview(articles);
-                
-                let workingTemplate = template;
                 
                 // Remplacer À LA UNE
                 if (uneArticle) {
@@ -830,6 +850,27 @@ articles = articles.map(a => ({
             const after = template.substring(afterDebutLine);
             
             return before + blocks.join('') + after;
+        }
+        
+        function replaceDateInTemplate(template, dateValue) {
+            // dateValue est au format YYYY-MM-DD (du date picker)
+            const [year, month, day] = dateValue.split('-');
+            
+            // Format français : JJ/MM/AAAA
+            const frenchDate = `${day}/${month}/${year}`;
+            
+            // Format américain : AAAA_MM_JJ
+            const americanDate = `${year}_${month}_${day}`;
+            
+            // Remplacer le texte "édition du XX/XX/XXXX"
+            const datePattern = /(<span[^>]*>é<\/span>dition du )(\d{2}\/\d{2}\/\d{4})/gi;
+            template = template.replace(datePattern, `$1${frenchDate}`);
+            
+            // Remplacer toutes les dates au format AAAA_MM_JJ dans les URLs
+            const urlDatePattern = /\d{4}_\d{2}_\d{2}/g;
+            template = template.replace(urlDatePattern, americanDate);
+            
+            return template;
         }
         
         function replaceUneBlock(template, uneArticle) {
@@ -1047,6 +1088,11 @@ articles = articles.map(a => ({
                 setFocusUrl();
             }
         });
+        
+        // Initialiser le date picker avec la date du jour
+        const today = new Date();
+        const dateString = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
+        document.getElementById('publication-date').value = dateString;
     </script>
 </body>
 </html>
