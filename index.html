@@ -371,7 +371,20 @@
             </div>
             
             <div class="section">
-                <div class="section-title">2. URLs des Articles</div>
+                <div class="section-title">2. URL du Focus (Article 2)</div>
+                <div class="info-box">
+                    <p><strong>ℹ️ Info :</strong> L'article Focus remplacera l'ARTICLE 2 de votre newsletter.</p>
+                    <p>Il affichera : image (338x276), titre, et chapô.</p>
+                </div>
+                <div class="url-input-container">
+                    <input type="text" id="focus-url-input" placeholder="https://www.tourmag.com/..." />
+                    <button class="btn btn-secondary" onclick="setFocusUrl()">Définir le Focus</button>
+                </div>
+                <div id="focus-url-display" class="url-list" style="display: none;"></div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">3. URLs des Blocs d'Articles (3 par ligne)</div>
                 <div class="url-input-container">
                     <input type="text" id="url-input" placeholder="https://www.tourmag.com/..." />
                     <button class="btn btn-secondary" onclick="addUrl()">Ajouter</button>
@@ -408,6 +421,7 @@
 
     <script>
         const urls = [];
+        let focusUrl = null;
         const API_URL = window.location.hostname === 'localhost' 
             ? 'http://localhost:3000/api/scrape'
             : '/api/scrape';
@@ -429,6 +443,47 @@
             urls.push(url);
             input.value = '';
             updateUrlList();
+        }
+        
+        function setFocusUrl() {
+            const input = document.getElementById('focus-url-input');
+            const url = input.value.trim();
+            
+            if (!url) {
+                alert('Veuillez entrer une URL pour le Focus');
+                return;
+            }
+            
+            if (!url.includes('tourmag.com')) {
+                alert('Veuillez entrer une URL TourMaG valide');
+                return;
+            }
+            
+            focusUrl = url;
+            input.value = '';
+            updateFocusDisplay();
+        }
+        
+        function removeFocusUrl() {
+            focusUrl = null;
+            updateFocusDisplay();
+        }
+        
+        function updateFocusDisplay() {
+            const displayDiv = document.getElementById('focus-url-display');
+            
+            if (!focusUrl) {
+                displayDiv.style.display = 'none';
+                return;
+            }
+            
+            displayDiv.style.display = 'block';
+            displayDiv.innerHTML = `
+                <div class="url-item" style="background: #e0e7ff; border-left: 4px solid #667eea;">
+                    <span>🎯 Focus: ${focusUrl}</span>
+                    <button onclick="removeFocusUrl()">Supprimer</button>
+                </div>
+            `;
         }
         
         function addMultipleUrls() {
@@ -475,19 +530,19 @@
                 return;
             }
             
-            if (urls.length === 0) {
-                alert('Veuillez ajouter au moins une URL d\'article');
+            if (!focusUrl && urls.length === 0) {
+                alert('Veuillez ajouter au moins un Focus ou des articles');
                 return;
             }
             
             // Vérifier les commentaires requis
-            if (!template.includes('<!--FIN ARTICLE 2-->')) {
-                alert('⚠️ ERREUR: Votre template ne contient pas le commentaire "<!--FIN ARTICLE 2-->".\n\nCe commentaire est obligatoire pour que le générateur fonctionne.');
+            if (!template.includes('<!--DEBUT ARTICLE 2-->') || !template.includes('<!--FIN ARTICLE 2-->')) {
+                alert('⚠️ ERREUR: Votre template ne contient pas les commentaires ARTICLE 2.\n\nCes commentaires sont obligatoires.');
                 return;
             }
             
             if (!template.includes('<!-- DEBUT FOOTER -->')) {
-                alert('⚠️ ERREUR: Votre template ne contient pas le commentaire "<!-- DEBUT FOOTER -->".\n\nCe commentaire est obligatoire pour que le générateur fonctionne.');
+                alert('⚠️ ERREUR: Votre template ne contient pas le commentaire "<!-- DEBUT FOOTER -->".\n\nCe commentaire est obligatoire.');
                 return;
             }
             
@@ -497,13 +552,18 @@
             try {
                 updateProgress(10, 'Scraping des articles en cours...');
                 
+                // Construire la liste complète des URLs à scraper
+                const allUrls = [];
+                if (focusUrl) allUrls.push(focusUrl);
+                allUrls.push(...urls);
+                
                 // Appel à l'API de scraping
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ urls })
+                    body: JSON.stringify({ urls: allUrls })
                 });
                 
                 if (!response.ok) {
@@ -511,18 +571,39 @@
                 }
                 
                 const data = await response.json();
-                const articles = data.articles;
+                let articles = data.articles;
                 
-                updateProgress(80, 'Articles récupérés, génération de la newsletter...');
+                updateProgress(60, 'Articles récupérés, génération de la newsletter...');
                 
-                // Afficher l'aperçu des articles
+                // Séparer le Focus des articles normaux
+                let focusArticle = null;
+                let normalArticles = [];
+                
+                if (focusUrl) {
+                    focusArticle = articles[0];
+                    normalArticles = articles.slice(1);
+                } else {
+                    normalArticles = articles;
+                }
+                
+                // Afficher l'aperçu
                 showPreview(articles);
                 
-                // Supprimer les anciens blocs d'articles du template
-                const cleanTemplate = removeOldArticleBlocks(template);
+                updateProgress(70, 'Remplacement de l\'Article 2 par le Focus...');
+                
+                // Remplacer ARTICLE 2 par le Focus
+                let workingTemplate = template;
+                if (focusArticle) {
+                    workingTemplate = replaceFocusBlock(template, focusArticle);
+                }
+                
+                updateProgress(80, 'Insertion des blocs d\'articles...');
+                
+                // Supprimer les anciens blocs d'articles
+                const cleanTemplate = removeOldArticleBlocks(workingTemplate);
                 
                 // Générer la newsletter avec les nouveaux articles
-                const generatedHtml = insertArticles(cleanTemplate, articles);
+                const generatedHtml = insertArticles(cleanTemplate, normalArticles);
                 
                 updateProgress(100, 'Newsletter générée avec succès !');
                 
@@ -664,6 +745,61 @@
             return before + blocks.join('') + after;
         }
         
+        function createFocusBlock(article) {
+            return `<!--DEBUT ARTICLE 2-->
+                    <tr>
+                        <td>
+                            <table width="700" border="0" align="center" cellpadding="0" cellspacing="0" style="background-color: #ffffff;">
+                                <tr>
+                                    <td width="9" height="276"></td>
+                                    <td width="338" height="276">
+                                        <a href="${article.url}" target="_blank" class="img"><img src="${article.image}" alt="${escapeHtml(article.alt)}" border="0" width="338" height="276"></a>
+                                    </td>
+                                    <td width="14" height="276"></td>
+                                  <td width="330" style="font-family: arial, sans-serif; font-size: 16px; color:#61666d; vertical-align:top;"><span style="color: #579CFD; font-size: 25px;">FOCUS</span><br />
+                                    <a href="${article.url}" target="_blank" style="color:#325867; text-decoration:none; font-size:20px; font-weight: bold;">${escapeHtml(article.title)}</a><br />
+                                    
+${escapeHtml(article.chapo)}</td>
+                                    <td width="9"></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="700" height="40">&nbsp;</td>
+                    </tr>
+                    <!--FIN ARTICLE 2-->`;
+        }
+        
+        function replaceFocusBlock(template, focusArticle) {
+            // Normaliser les retours à la ligne
+            template = template.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            
+            // Trouver DEBUT ARTICLE 2
+            const debutArticle2 = template.indexOf('<!--DEBUT ARTICLE 2-->');
+            if (debutArticle2 === -1) {
+                alert('Impossible de trouver <!--DEBUT ARTICLE 2-->');
+                throw new Error('DEBUT ARTICLE 2 non trouvé');
+            }
+            
+            // Trouver FIN ARTICLE 2
+            const finArticle2 = template.indexOf('<!--FIN ARTICLE 2-->', debutArticle2);
+            if (finArticle2 === -1) {
+                alert('Impossible de trouver <!--FIN ARTICLE 2-->');
+                throw new Error('FIN ARTICLE 2 non trouvé');
+            }
+            
+            // Trouver la fin de la ligne FIN ARTICLE 2
+            const afterFinArticle2 = template.indexOf('\n', finArticle2) + 1;
+            
+            // Construire le nouveau template
+            const before = template.substring(0, debutArticle2);
+            const after = template.substring(afterFinArticle2);
+            const focusHtml = createFocusBlock(focusArticle);
+            
+            return before + focusHtml + '\n' + after;
+        }
+        
         function createArticleBlock(articles) {
             // Compléter avec des articles vides si moins de 3
             while (articles.length < 3) {
@@ -739,6 +875,12 @@
         document.getElementById('url-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 addUrl();
+            }
+        });
+        
+        document.getElementById('focus-url-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                setFocusUrl();
             }
         });
     </script>
