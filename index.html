@@ -540,62 +540,54 @@
         }
         
         function removeOldArticleBlocks(template) {
-            // Normaliser les retours à la ligne (Windows \r\n vers \n)
+            // Normaliser les retours à la ligne
             template = template.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
             
-            // Trouver <!--FIN ARTICLE 2-->
-            const finArticle2 = '<!--FIN ARTICLE 2-->';
-            const finIndex = template.indexOf(finArticle2);
-            if (finIndex === -1) {
-                alert('ERREUR: Le commentaire "<!--FIN ARTICLE 2-->" n\'est pas trouvé dans votre template.');
-                throw new Error('Commentaire FIN ARTICLE 2 non trouvé');
+            // Vérifier les commentaires requis
+            if (template.indexOf('<!--FIN ARTICLE 2-->') === -1) {
+                alert('ERREUR: "<!--FIN ARTICLE 2-->" non trouvé');
+                throw new Error('Commentaire manquant');
+            }
+            if (template.indexOf('<!--DEBUT LIGNE 3 ARTICLES-->') === -1) {
+                alert('ERREUR: "<!--DEBUT LIGNE 3 ARTICLES-->" non trouvé');
+                throw new Error('Commentaire manquant');
+            }
+            if (template.indexOf('<!--FIN LIGNE 3 ARTICLES-->') === -1) {
+                alert('ERREUR: "<!--FIN LIGNE 3 ARTICLES-->" non trouvé');
+                throw new Error('Commentaire manquant');
+            }
+            if (template.indexOf('<!-- DEBUT FOOTER -->') === -1) {
+                alert('ERREUR: "<!-- DEBUT FOOTER -->" non trouvé');
+                throw new Error('Commentaire manquant');
             }
             
-            // Trouver <!-- DEBUT FOOTER -->
-            const debutFooter = '<!-- DEBUT FOOTER -->';
-            const footerIndex = template.indexOf(debutFooter);
-            if (footerIndex === -1) {
-                alert('ERREUR: Le commentaire "<!-- DEBUT FOOTER -->" n\'est pas trouvé dans votre template.');
-                throw new Error('Commentaire DEBUT FOOTER non trouvé');
-            }
+            // 1. Garder tout AVANT et INCLUANT <!--FIN ARTICLE 2-->
+            const finArticle2Index = template.indexOf('<!--FIN ARTICLE 2-->');
+            const afterFinArticle2 = template.indexOf('\n', finArticle2Index) + 1;
+            const part1 = template.substring(0, afterFinArticle2);
             
-            // Garder tout AVANT FIN ARTICLE 2 (inclus)
-            const endOfFinLine = template.indexOf('\n', finIndex);
-            const partAvant = template.substring(0, endOfFinLine + 1);
+            // 2. Trouver le PREMIER <!--DEBUT LIGNE 3 ARTICLES-->
+            const firstDebutIndex = template.indexOf('<!--DEBUT LIGNE 3 ARTICLES-->', afterFinArticle2);
+            const afterFirstDebut = template.indexOf('\n', firstDebutIndex) + 1;
             
-            // Garder tout APRES DEBUT FOOTER
-            const partApres = template.substring(footerIndex);
+            // 3. Garder tout ENTRE <!--FIN ARTICLE 2--> et la FIN de la ligne <!--DEBUT LIGNE 3 ARTICLES--> (inclus)
+            const part2 = template.substring(afterFinArticle2, afterFirstDebut);
             
-            // Extraire la section entre FIN ARTICLE 2 et DEBUT FOOTER
-            const middleSection = template.substring(endOfFinLine + 1, footerIndex);
+            // 4. Trouver le DERNIER <!--FIN LIGNE 3 ARTICLES-->
+            const lastFinIndex = template.lastIndexOf('<!--FIN LIGNE 3 ARTICLES-->');
+            const afterLastFin = template.indexOf('\n', lastFinIndex) + 1;
             
-            // Trouver le dernier <!--FIN LIGNE 3 ARTICLES-->
-            const lastFinArticle = middleSection.lastIndexOf('<!--FIN LIGNE 3 ARTICLES-->');
+            // 5. Trouver <!-- DEBUT FOOTER -->
+            const footerIndex = template.indexOf('<!-- DEBUT FOOTER -->');
             
-            if (lastFinArticle === -1) {
-                // Pas de bloc d'articles à supprimer, on garde tout
-                return partAvant + middleSection + partApres;
-            }
+            // 6. Garder tout ENTRE le dernier <!--FIN LIGNE 3 ARTICLES--> et <!-- DEBUT FOOTER --> (structure après + pub)
+            const part3 = template.substring(afterLastFin, footerIndex);
             
-            // Trouver la fin de la ligne du dernier FIN LIGNE 3 ARTICLES
-            const endOfLastFin = middleSection.indexOf('\n', lastFinArticle);
+            // 7. Garder tout APRÈS <!-- DEBUT FOOTER -->
+            const part4 = template.substring(footerIndex);
             
-            // Garder ce qui est APRÈS le dernier FIN LIGNE 3 ARTICLES (la pub, etc.)
-            const afterLastArticle = middleSection.substring(endOfLastFin + 1);
-            
-            // Extraire ce qui est AVANT le premier DEBUT LIGNE 3 ARTICLES
-            const firstDebut = middleSection.indexOf('<!--DEBUT LIGNE 3 ARTICLES-->');
-            let beforeFirstArticle = '';
-            if (firstDebut !== -1) {
-                // Trouver le début de la ligne
-                let startOfLine = firstDebut;
-                while (startOfLine > 0 && middleSection[startOfLine - 1] !== '\n') {
-                    startOfLine--;
-                }
-                beforeFirstArticle = middleSection.substring(0, startOfLine);
-            }
-            
-            return partAvant + beforeFirstArticle + afterLastArticle + partApres;
+            // Résultat : part1 + part2 + [ICI ON INSÉRERA LES ARTICLES APRÈS le commentaire] + part3 + part4
+            return part1 + part2 + part3 + part4;
         }
         
         function showPreview(articles) {
@@ -654,20 +646,22 @@
                 blocks.push(block);
             }
             
-            // Trouver <!-- DEBUT FOOTER -->
-            const debutFooter = '<!-- DEBUT FOOTER -->';
-            const footerIndex = template.indexOf(debutFooter);
+            // Trouver <!--DEBUT LIGNE 3 ARTICLES-->
+            const debutIndex = template.indexOf('<!--DEBUT LIGNE 3 ARTICLES-->');
             
-            if (footerIndex === -1) {
-                alert('ERREUR: Impossible de trouver "<!-- DEBUT FOOTER -->" pour insérer les articles.');
+            if (debutIndex === -1) {
+                alert('ERREUR: Impossible de trouver le point d\'insertion');
                 throw new Error('Point d\'insertion non trouvé');
             }
             
-            // Insérer juste avant le footer
-            const beforeFooter = template.substring(0, footerIndex);
-            const afterFooter = template.substring(footerIndex);
+            // Trouver la fin de la ligne du commentaire
+            const afterDebutLine = template.indexOf('\n', debutIndex) + 1;
             
-            return beforeFooter + blocks.join('') + afterFooter;
+            // Insérer APRÈS la ligne du commentaire
+            const before = template.substring(0, afterDebutLine);
+            const after = template.substring(afterDebutLine);
+            
+            return before + blocks.join('') + after;
         }
         
         function createArticleBlock(articles) {
