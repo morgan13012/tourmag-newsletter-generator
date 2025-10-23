@@ -65,11 +65,23 @@ export default async function handler(req, res) {
             alt = title.substring(0, 100);
           }
 
+          // Extraction du chapô
+          let chapo = '';
+          const chapoDivs = $('.chapeau h3.access, .chapeau .access, div.chapeau h3');
+          if (chapoDivs.length > 0) {
+            chapo = chapoDivs.first().text().trim();
+            // Ajouter "..." à la fin si pas déjà présent
+            if (chapo && !chapo.endsWith('...') && !chapo.endsWith('…')) {
+              chapo += '...';
+            }
+          }
+
           return {
             url,
             title: title || 'Article sans titre',
             image: image || 'https://via.placeholder.com/215x134',
             alt: alt || 'Image article',
+            chapo: chapo || '',
             success: true
           };
         } catch (error) {
