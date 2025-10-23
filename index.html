@@ -572,6 +572,18 @@
                 
                 const data = await response.json();
                 let articles = data.articles;
+
+				// 🔧 Nettoyage automatique du Poddle et du HTML du chapô
+articles = articles.map(a => ({
+  ...a,
+  chapo: a.chapo
+    .replace(/<script[\s\S]*?<\/script>/gi, '') // supprime les scripts
+    .replace(/PodlePlayer\.init[\s\S]*?;/gi, '') // supprime les appels Poddle
+    .replace(/<\/?[^>]+(>|$)/g, '') // supprime toutes les balises HTML
+    .replace(/&nbsp;/g, ' ')
+    .trim()
+}));
+
                 
                 updateProgress(60, 'Articles récupérés, génération de la newsletter...');
                 
@@ -745,31 +757,33 @@
             return before + blocks.join('') + after;
         }
         
-        function createFocusBlock(article) {
-            return `<!--DEBUT ARTICLE 2-->
-                    <tr>
-                        <td>
-                            <table width="700" border="0" align="center" cellpadding="0" cellspacing="0" style="background-color: #ffffff;">
-                                <tr>
-                                    <td width="9" height="276"></td>
-                                    <td width="338" height="276">
-                                        <a href="${article.url}" target="_blank" class="img"><img src="${article.image}" alt="${escapeHtml(article.alt)}" border="0" width="338" height="276"></a>
-                                    </td>
-                                    <td width="14" height="276"></td>
-                                  <td width="330" style="font-family: arial, sans-serif; font-size: 16px; color:#61666d; vertical-align:top;"><span style="color: #579CFD; font-size: 25px;">FOCUS</span><br />
-                                    <a href="${article.url}" target="_blank" style="color:#325867; text-decoration:none; font-size:20px; font-weight: bold;">${escapeHtml(article.title)}</a><br />
-                                    
-${escapeHtml(article.chapo)}</td>
-                                    <td width="9"></td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td width="700" height="40">&nbsp;</td>
-                    </tr>
-                    <!--FIN ARTICLE 2-->`;
-        }
+       function createFocusBlock(article) {
+  return `<!--DEBUT ARTICLE 2-->
+      <tr>
+        <td>
+          <table width="100%" border="0" align="center" cellpadding="0" cellspacing="0" style="max-width:700px;background-color:#ffffff;margin:0 auto;">
+            <tr>
+              <td width="9" height="276"></td>
+              <td width="335" height="276" align="center" style="vertical-align:top;">
+                <a href="${article.url}" target="_blank" class="img">
+                  <img src="${article.image}" alt="${escapeHtml(article.alt)}" border="0" width="335" height="276" style="display:block;margin:0 auto;">
+                </a>
+              </td>
+              <td width="14" height="276"></td>
+              <td width="326" style="font-family:arial,sans-serif;font-size:16px;color:#61666d;vertical-align:top;">
+                <span style="color:#579CFD;font-size:25px;">FOCUS</span><br>
+                <a href="${article.url}" target="_blank" style="color:#325867;text-decoration:none;font-size:20px;font-weight:bold;">${escapeHtml(article.title)}</a><br>
+                ${escapeHtml(article.chapo)}
+              </td>
+              <td width="9"></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr><td width="700" height="40">&nbsp;</td></tr>
+      <!--FIN ARTICLE 2-->`;
+}
+
         
         function replaceFocusBlock(template, focusArticle) {
             // Normaliser les retours à la ligne
@@ -848,12 +862,20 @@ ${escapeHtml(article.chapo)}</td>
             return text.replace(/[&<>"']/g, m => map[m]);
         }
         
-        function showResult(html) {
-            hideProgress();
-            document.getElementById('result-container').style.display = 'block';
-            document.getElementById('result-textarea').value = html;
-            document.getElementById('result-textarea').scrollIntoView({ behavior: 'smooth' });
-        }
+       function showResult(html) {
+  hideProgress();
+
+  // 🔧 Correction : centrage automatique de toutes les images
+  const fixedHtml = html.replace(/<img([^>]+)>/gi, (match, attrs) => {
+    if (attrs.includes('display:block')) return match; // déjà centré
+    return `<img${attrs} style="display:block;margin:0 auto;">`;
+  });
+
+  document.getElementById('result-container').style.display = 'block';
+  document.getElementById('result-textarea').value = fixedHtml;
+  document.getElementById('result-textarea').scrollIntoView({ behavior: 'smooth' });
+}
+
         
         function copyResult() {
             const textarea = document.getElementById('result-textarea');
