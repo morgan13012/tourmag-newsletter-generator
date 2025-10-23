@@ -382,7 +382,23 @@
             </div>
             
             <div class="section">
-                <div class="section-title">3. URL de l'Article À LA UNE</div>
+                <div class="section-title">3. Newsletter</div>
+                <div class="info-box">
+                    <p><strong>📰 Info :</strong> Sélectionnez la newsletter pour générer les codes de tracking UTM.</p>
+                    <p>Le tracking sera appliqué automatiquement à toutes les URLs.</p>
+                </div>
+                <div class="url-input-container">
+                    <select id="newsletter-type" style="flex: 1; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px; cursor: pointer;">
+                        <option value="airmag">AirMaG</option>
+                        <option value="cruisemag">CruiseMaG</option>
+                        <option value="latraveltech">La TravelTech</option>
+                        <option value="luxurytravelmag">LuxuryTravelMaG</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">4. URL de l'Article À LA UNE</div>
                 <div class="info-box">
                     <p><strong>ℹ️ Info :</strong> L'article À LA UNE sera affiché en grand format (700x276).</p>
                     <p>Il récupérera automatiquement : l'image, le titre et le copyright.</p>
@@ -395,7 +411,7 @@
             </div>
             
             <div class="section">
-                <div class="section-title">4. URL du Focus (Article 2)</div>
+                <div class="section-title">5. URL du Focus (Article 2)</div>
                 <div class="info-box">
                     <p><strong>ℹ️ Info :</strong> L'article Focus remplacera l'ARTICLE 2 de votre newsletter.</p>
                     <p>Il affichera : image (338x276), titre, et chapô.</p>
@@ -408,7 +424,7 @@
             </div>
             
             <div class="section">
-                <div class="section-title">5. URLs des Blocs d'Articles (3 par ligne)</div>
+                <div class="section-title">6. URLs des Blocs d'Articles (3 par ligne)</div>
                 <div class="url-input-container">
                     <input type="text" id="url-input" placeholder="https://www.tourmag.com/..." />
                     <button class="btn btn-secondary" onclick="addUrl()">Ajouter</button>
@@ -624,8 +640,14 @@
             try {
                 updateProgress(5, 'Application de la date de publication...');
                 
+                // Récupérer le type de newsletter
+                const newsletterType = document.getElementById('newsletter-type').value;
+                
                 // Appliquer la date dans le template
                 let workingTemplate = replaceDateInTemplate(template, publicationDate);
+                
+                // Appliquer le tracking à toutes les URLs avec tracking existant
+                workingTemplate = applyTrackingToTemplate(workingTemplate, newsletterType, publicationDate);
                 
                 updateProgress(10, 'Scraping des articles en cours...');
                 
@@ -679,15 +701,24 @@ articles = articles.map(a => ({
                 
                 if (uneUrl) {
                     uneArticle = articles[currentIndex];
+                    // Ajouter le tracking à l'URL
+                    uneArticle.url = addTrackingToUrl(uneArticle.url, newsletterType, publicationDate);
                     currentIndex++;
                 }
                 
                 if (focusUrl) {
                     focusArticle = articles[currentIndex];
+                    // Ajouter le tracking à l'URL
+                    focusArticle.url = addTrackingToUrl(focusArticle.url, newsletterType, publicationDate);
                     currentIndex++;
                 }
                 
                 normalArticles = articles.slice(currentIndex);
+                // Ajouter le tracking à toutes les URLs des articles normaux
+                normalArticles = normalArticles.map(article => ({
+                    ...article,
+                    url: addTrackingToUrl(article.url, newsletterType, publicationDate)
+                }));
                 
                 // Afficher l'aperçu
                 showPreview(articles);
@@ -871,6 +902,89 @@ articles = articles.map(a => ({
             template = template.replace(urlDatePattern, americanDate);
             
             return template;
+        }
+        
+        function applyTrackingToTemplate(template, newsletterType, dateValue) {
+            // dateValue est au format YYYY-MM-DD
+            const [year, month, day] = dateValue.split('-');
+            const americanDate = `${year}_${month}_${day}`;
+            
+            // Mapping des newsletters vers leurs codes de tracking
+            const trackingConfig = {
+                'airmag': {
+                    medium: 'newsletterairmag',
+                    source: 'newsletterairmag',
+                    campaign: `airmag-${americanDate}`
+                },
+                'cruisemag': {
+                    medium: 'newslettercruisemag',
+                    source: 'newslettercruisemag',
+                    campaign: `cruisemag-${americanDate}`
+                },
+                'latraveltech': {
+                    medium: 'newsletterlatraveltech',
+                    source: 'newsletterlatraveltech',
+                    campaign: `latraveltech-${americanDate}`
+                },
+                'luxurytravelmag': {
+                    medium: 'newsletterluxurytravelmag',
+                    source: 'newsletterluxurytravelmag',
+                    campaign: `luxurytravelmag-${americanDate}`
+                }
+            };
+            
+            const config = trackingConfig[newsletterType];
+            if (!config) {
+                console.error('Type de newsletter inconnu:', newsletterType);
+                return template;
+            }
+            
+            // Nouveau tracking complet
+            const newTracking = `utm_medium=${config.medium}&utm_source=${config.source}&utm_campaign=${config.campaign}`;
+            
+            // Remplacer tous les trackings existants (utm_medium=...&utm_source=...&utm_campaign=...)
+            // Pattern qui capture n'importe quel tracking UTM complet
+            const utmPattern = /utm_medium=[^&\s]+&utm_source=[^&\s]+&utm_campaign=[^&\s"<>]+/g;
+            
+            template = template.replace(utmPattern, newTracking);
+            
+            return template;
+        }
+        
+        function addTrackingToUrl(url, newsletterType, dateValue) {
+            // Si l'URL a déjà un tracking, on le supprime d'abord
+            const baseUrl = url.split('?')[0];
+            
+            const [year, month, day] = dateValue.split('-');
+            const americanDate = `${year}_${month}_${day}`;
+            
+            const trackingConfig = {
+                'airmag': {
+                    medium: 'newsletterairmag',
+                    source: 'newsletterairmag',
+                    campaign: `airmag-${americanDate}`
+                },
+                'cruisemag': {
+                    medium: 'newslettercruisemag',
+                    source: 'newslettercruisemag',
+                    campaign: `cruisemag-${americanDate}`
+                },
+                'latraveltech': {
+                    medium: 'newsletterlatraveltech',
+                    source: 'newsletterlatraveltech',
+                    campaign: `latraveltech-${americanDate}`
+                },
+                'luxurytravelmag': {
+                    medium: 'newsletterluxurytravelmag',
+                    source: 'newsletterluxurytravelmag',
+                    campaign: `luxurytravelmag-${americanDate}`
+                }
+            };
+            
+            const config = trackingConfig[newsletterType];
+            if (!config) return url;
+            
+            return `${baseUrl}?utm_medium=${config.medium}&utm_source=${config.source}&utm_campaign=${config.campaign}`;
         }
         
         function replaceUneBlock(template, uneArticle) {
