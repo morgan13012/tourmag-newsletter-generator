@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #667eea; }
+        button { background: #667eea; color: white; border: none; padding: 15px 30px; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px 5px; }
+        button:hover { background: #5568d3; }
+        #result { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px; white-space: pre-wrap; font-family: monospace; font-size: 12px; }
+        .success { color: #10b981; }
+        .error { color: #dc3545; }
+        .info { color: #667eea; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test de l'API</h1>
+        <button onclick="testApi()">🚀 Tester</button>
+        <button onclick="clearResult()">🗑️ Effacer</button>
+        <div id="result"></div>
+    </div>
+    <script>
+        const resultDiv = document.getElementById('result');
+        function log(msg, type = 'info') {
+            resultDiv.innerHTML += `<div class="${type}">${msg}</div>`;
+        }
+        function clearResult() { resultDiv.innerHTML = ''; }
+        async function testApi() {
+            clearResult();
+            log('🚀 Test en cours...', 'info');
+            const testUrls = ['https://www.tourmag.com/Le-Tresor-des-Batisseurs-Excurio-perce-le-secret-de-la-Grande-Pyramide-en-realite-virtuelle_a129025.html'];
+            try {
+                const response = await fetch('/api/scrape', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ urls: testUrls })
+                });
+                if (!response.ok) {
+                    log(`❌ Erreur HTTP ${response.status}`, 'error');
+                    return;
+                }
+                const data = await response.json();
+                log('✅ API fonctionne !', 'success');
+                log(`📰 Article: ${data.articles[0].title}`, 'success');
+                log('🎉 Test réussi !', 'success');
+            } catch (error) {
+                log(`❌ Erreur: ${error.message}`, 'error');
+                log('💡 Vérifiez que l\'API est déployée', 'info');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "tourmag-newsletter-generator",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Générateur automatique de newsletters TourMaG avec scraping d'articles",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12"
+  }
+}
