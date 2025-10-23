@@ -460,9 +460,9 @@
     </div>
 
     <script>
-        const urls = [];
-        let focusUrl = null;
-        let uneUrl = null;
+        const urls = []; // Sera un tableau d'objets {url: string, forceMep: boolean}
+        let focusUrl = null; // Sera un objet {url: string, forceMep: boolean}
+        let uneUrl = null; // Sera un objet {url: string, forceMep: boolean}
         const API_URL = window.location.hostname === 'localhost' 
             ? 'http://localhost:3000/api/scrape'
             : '/api/scrape';
@@ -481,7 +481,7 @@
                 return;
             }
             
-            urls.push(url);
+            urls.push({ url: url, forceMep: false });
             input.value = '';
             updateUrlList();
         }
@@ -500,7 +500,7 @@
                 return;
             }
             
-            uneUrl = url;
+            uneUrl = { url: url, forceMep: false };
             input.value = '';
             updateUneDisplay();
         }
@@ -521,10 +521,20 @@
             displayDiv.style.display = 'block';
             displayDiv.innerHTML = `
                 <div class="url-item" style="background: #fef3c7; border-left: 4px solid #f59e0b;">
-                    <span>⭐ À LA UNE: ${uneUrl}</span>
+                    <span>⭐ À LA UNE: ${uneUrl.url}</span>
+                    <label style="margin-left: 15px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="checkbox" ${uneUrl.forceMep ? 'checked' : ''} onchange="toggleUneForceMep()" style="cursor: pointer;">
+                        <span style="font-size: 13px;">Ajouter force_mep</span>
+                    </label>
                     <button onclick="removeUneUrl()">Supprimer</button>
                 </div>
             `;
+        }
+        
+        function toggleUneForceMep() {
+            if (uneUrl) {
+                uneUrl.forceMep = !uneUrl.forceMep;
+            }
         }
         
         function setFocusUrl() {
@@ -541,7 +551,7 @@
                 return;
             }
             
-            focusUrl = url;
+            focusUrl = { url: url, forceMep: false };
             input.value = '';
             updateFocusDisplay();
         }
@@ -562,10 +572,20 @@
             displayDiv.style.display = 'block';
             displayDiv.innerHTML = `
                 <div class="url-item" style="background: #e0e7ff; border-left: 4px solid #667eea;">
-                    <span>🎯 Focus: ${focusUrl}</span>
+                    <span>🎯 Focus: ${focusUrl.url}</span>
+                    <label style="margin-left: 15px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="checkbox" ${focusUrl.forceMep ? 'checked' : ''} onchange="toggleFocusForceMep()" style="cursor: pointer;">
+                        <span style="font-size: 13px;">Ajouter force_mep</span>
+                    </label>
                     <button onclick="removeFocusUrl()">Supprimer</button>
                 </div>
             `;
+        }
+        
+        function toggleFocusForceMep() {
+            if (focusUrl) {
+                focusUrl.forceMep = !focusUrl.forceMep;
+            }
         }
         
         function addMultipleUrls() {
@@ -575,7 +595,7 @@
             const urlLines = urlsText.split('\n').map(u => u.trim()).filter(u => u);
             urlLines.forEach(url => {
                 if (url.includes('tourmag.com')) {
-                    urls.push(url);
+                    urls.push({ url: url, forceMep: false });
                 }
             });
             
@@ -587,6 +607,12 @@
             updateUrlList();
         }
         
+        function toggleUrlForceMep(index) {
+            if (urls[index]) {
+                urls[index].forceMep = !urls[index].forceMep;
+            }
+        }
+        
         function updateUrlList() {
             const listDiv = document.getElementById('url-list');
             
@@ -596,9 +622,13 @@
             }
             
             listDiv.style.display = 'block';
-            listDiv.innerHTML = urls.map((url, index) => `
+            listDiv.innerHTML = urls.map((urlObj, index) => `
                 <div class="url-item">
-                    <span>${index + 1}. ${url}</span>
+                    <span>${index + 1}. ${urlObj.url}</span>
+                    <label style="margin-left: 15px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="checkbox" ${urlObj.forceMep ? 'checked' : ''} onchange="toggleUrlForceMep(${index})" style="cursor: pointer;">
+                        <span style="font-size: 13px;">Ajouter force_mep</span>
+                    </label>
                     <button onclick="removeUrl(${index})">Supprimer</button>
                 </div>
             `).join('');
@@ -651,11 +681,11 @@
                 
                 updateProgress(10, 'Scraping des articles en cours...');
                 
-                // Construire la liste complète des URLs à scraper
+                // Construire la liste complète des URLs à scraper (juste les URLs, pas les objets)
                 const allUrls = [];
-                if (uneUrl) allUrls.push(uneUrl);
-                if (focusUrl) allUrls.push(focusUrl);
-                allUrls.push(...urls);
+                if (uneUrl) allUrls.push(uneUrl.url);
+                if (focusUrl) allUrls.push(focusUrl.url);
+                allUrls.push(...urls.map(u => u.url));
                 
                 // Appel à l'API de scraping
                 const response = await fetch(API_URL, {
@@ -701,23 +731,23 @@ articles = articles.map(a => ({
                 
                 if (uneUrl) {
                     uneArticle = articles[currentIndex];
-                    // Ajouter le tracking à l'URL
-                    uneArticle.url = addTrackingToUrl(uneArticle.url, newsletterType, publicationDate);
+                    // Ajouter le tracking à l'URL avec force_mep si coché
+                    uneArticle.url = addTrackingToUrl(uneArticle.url, newsletterType, publicationDate, uneUrl.forceMep);
                     currentIndex++;
                 }
                 
                 if (focusUrl) {
                     focusArticle = articles[currentIndex];
-                    // Ajouter le tracking à l'URL
-                    focusArticle.url = addTrackingToUrl(focusArticle.url, newsletterType, publicationDate);
+                    // Ajouter le tracking à l'URL avec force_mep si coché
+                    focusArticle.url = addTrackingToUrl(focusArticle.url, newsletterType, publicationDate, focusUrl.forceMep);
                     currentIndex++;
                 }
                 
                 normalArticles = articles.slice(currentIndex);
-                // Ajouter le tracking à toutes les URLs des articles normaux
-                normalArticles = normalArticles.map(article => ({
+                // Ajouter le tracking à toutes les URLs des articles normaux avec force_mep si coché
+                normalArticles = normalArticles.map((article, index) => ({
                     ...article,
-                    url: addTrackingToUrl(article.url, newsletterType, publicationDate)
+                    url: addTrackingToUrl(article.url, newsletterType, publicationDate, urls[index]?.forceMep || false)
                 }));
                 
                 // Afficher l'aperçu
@@ -951,7 +981,7 @@ articles = articles.map(a => ({
             return template;
         }
         
-        function addTrackingToUrl(url, newsletterType, dateValue) {
+        function addTrackingToUrl(url, newsletterType, dateValue, includeForceMep = false) {
             // Si l'URL a déjà un tracking, on le supprime d'abord
             const baseUrl = url.split('?')[0];
             
@@ -962,29 +992,40 @@ articles = articles.map(a => ({
                 'airmag': {
                     medium: 'newsletterairmag',
                     source: 'newsletterairmag',
-                    campaign: `airmag-${americanDate}`
+                    campaign: `airmag-${americanDate}`,
+                    forceMep: 'force_mep=266'
                 },
                 'cruisemag': {
                     medium: 'newslettercruisemag',
                     source: 'newslettercruisemag',
-                    campaign: `cruisemag-${americanDate}`
+                    campaign: `cruisemag-${americanDate}`,
+                    forceMep: 'force_mep=268'
                 },
                 'latraveltech': {
                     medium: 'newsletterlatraveltech',
                     source: 'newsletterlatraveltech',
-                    campaign: `latraveltech-${americanDate}`
+                    campaign: `latraveltech-${americanDate}`,
+                    forceMep: 'force_mep=270'
                 },
                 'luxurytravelmag': {
                     medium: 'newsletterluxurytravelmag',
                     source: 'newsletterluxurytravelmag',
-                    campaign: `luxurytravelmag-${americanDate}`
+                    campaign: `luxurytravelmag-${americanDate}`,
+                    forceMep: 'force_mep=304'
                 }
             };
             
             const config = trackingConfig[newsletterType];
             if (!config) return url;
             
-            return `${baseUrl}?utm_medium=${config.medium}&utm_source=${config.source}&utm_campaign=${config.campaign}`;
+            // Construire l'URL avec ou sans force_mep
+            let fullUrl = baseUrl + '?';
+            if (includeForceMep) {
+                fullUrl += config.forceMep + '&';
+            }
+            fullUrl += `utm_medium=${config.medium}&utm_source=${config.source}&utm_campaign=${config.campaign}`;
+            
+            return fullUrl;
         }
         
         function replaceUneBlock(template, uneArticle) {
