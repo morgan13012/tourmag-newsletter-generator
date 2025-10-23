@@ -371,7 +371,20 @@
             </div>
             
             <div class="section">
-                <div class="section-title">2. URL du Focus (Article 2)</div>
+                <div class="section-title">2. URL de l'Article À LA UNE</div>
+                <div class="info-box">
+                    <p><strong>ℹ️ Info :</strong> L'article À LA UNE sera affiché en grand format (700x276).</p>
+                    <p>Il récupérera automatiquement : l'image, le titre et le copyright.</p>
+                </div>
+                <div class="url-input-container">
+                    <input type="text" id="une-url-input" placeholder="https://www.tourmag.com/..." />
+                    <button class="btn btn-secondary" onclick="setUneUrl()">Définir À LA UNE</button>
+                </div>
+                <div id="une-url-display" class="url-list" style="display: none;"></div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">3. URL du Focus (Article 2)</div>
                 <div class="info-box">
                     <p><strong>ℹ️ Info :</strong> L'article Focus remplacera l'ARTICLE 2 de votre newsletter.</p>
                     <p>Il affichera : image (338x276), titre, et chapô.</p>
@@ -384,7 +397,7 @@
             </div>
             
             <div class="section">
-                <div class="section-title">3. URLs des Blocs d'Articles (3 par ligne)</div>
+                <div class="section-title">4. URLs des Blocs d'Articles (3 par ligne)</div>
                 <div class="url-input-container">
                     <input type="text" id="url-input" placeholder="https://www.tourmag.com/..." />
                     <button class="btn btn-secondary" onclick="addUrl()">Ajouter</button>
@@ -422,6 +435,7 @@
     <script>
         const urls = [];
         let focusUrl = null;
+        let uneUrl = null;
         const API_URL = window.location.hostname === 'localhost' 
             ? 'http://localhost:3000/api/scrape'
             : '/api/scrape';
@@ -443,6 +457,47 @@
             urls.push(url);
             input.value = '';
             updateUrlList();
+        }
+        
+        function setUneUrl() {
+            const input = document.getElementById('une-url-input');
+            const url = input.value.trim();
+            
+            if (!url) {
+                alert('Veuillez entrer une URL pour À LA UNE');
+                return;
+            }
+            
+            if (!url.includes('tourmag.com')) {
+                alert('Veuillez entrer une URL TourMaG valide');
+                return;
+            }
+            
+            uneUrl = url;
+            input.value = '';
+            updateUneDisplay();
+        }
+        
+        function removeUneUrl() {
+            uneUrl = null;
+            updateUneDisplay();
+        }
+        
+        function updateUneDisplay() {
+            const displayDiv = document.getElementById('une-url-display');
+            
+            if (!uneUrl) {
+                displayDiv.style.display = 'none';
+                return;
+            }
+            
+            displayDiv.style.display = 'block';
+            displayDiv.innerHTML = `
+                <div class="url-item" style="background: #fef3c7; border-left: 4px solid #f59e0b;">
+                    <span>⭐ À LA UNE: ${uneUrl}</span>
+                    <button onclick="removeUneUrl()">Supprimer</button>
+                </div>
+            `;
         }
         
         function setFocusUrl() {
@@ -554,6 +609,7 @@
                 
                 // Construire la liste complète des URLs à scraper
                 const allUrls = [];
+                if (uneUrl) allUrls.push(uneUrl);
                 if (focusUrl) allUrls.push(focusUrl);
                 allUrls.push(...urls);
                 
@@ -593,26 +649,39 @@ articles = articles.map(a => ({
                 
                 updateProgress(60, 'Articles récupérés, génération de la newsletter...');
                 
-                // Séparer le Focus des articles normaux
+                // Séparer À LA UNE, Focus et articles normaux
+                let uneArticle = null;
                 let focusArticle = null;
                 let normalArticles = [];
+                let currentIndex = 0;
+                
+                if (uneUrl) {
+                    uneArticle = articles[currentIndex];
+                    currentIndex++;
+                }
                 
                 if (focusUrl) {
-                    focusArticle = articles[0];
-                    normalArticles = articles.slice(1);
-                } else {
-                    normalArticles = articles;
+                    focusArticle = articles[currentIndex];
+                    currentIndex++;
                 }
+                
+                normalArticles = articles.slice(currentIndex);
                 
                 // Afficher l'aperçu
                 showPreview(articles);
                 
-                updateProgress(70, 'Remplacement de l\'Article 2 par le Focus...');
+                let workingTemplate = template;
+                
+                // Remplacer À LA UNE
+                if (uneArticle) {
+                    updateProgress(65, 'Remplacement de À LA UNE...');
+                    workingTemplate = replaceUneBlock(workingTemplate, uneArticle);
+                }
                 
                 // Remplacer ARTICLE 2 par le Focus
-                let workingTemplate = template;
                 if (focusArticle) {
-                    workingTemplate = replaceFocusBlock(template, focusArticle);
+                    updateProgress(70, 'Remplacement de l\'Article 2 par le Focus...');
+                    workingTemplate = replaceFocusBlock(workingTemplate, focusArticle);
                 }
                 
                 updateProgress(80, 'Insertion des blocs d\'articles...');
@@ -763,6 +832,67 @@ articles = articles.map(a => ({
             return before + blocks.join('') + after;
         }
         
+        function replaceUneBlock(template, uneArticle) {
+            // Normaliser les retours à la ligne
+            template = template.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            
+            // Trouver le td contenant "à la une"
+            const uneTitlePattern = /<td[^>]*>à la une<\/td>/i;
+            const uneTitleMatch = template.match(uneTitlePattern);
+            
+            if (!uneTitleMatch) {
+                alert('Impossible de trouver la section "À LA UNE" dans le template');
+                throw new Error('Section À LA UNE non trouvée');
+            }
+            
+            const uneTitleIndex = template.indexOf(uneTitleMatch[0]);
+            
+            // Trouver le <tr> qui contient l'image (après "à la une")
+            const imageRowPattern = /<tr>\s*<td width="700" height="276">\s*<a href="[^"]*"[^>]*><img src="[^"]*"[^>]*><\/a>\s*<\/td>\s*<\/tr>/;
+            const imageRowMatch = template.substring(uneTitleIndex).match(imageRowPattern);
+            
+            if (!imageRowMatch) {
+                alert('Impossible de trouver l\'image de À LA UNE');
+                throw new Error('Image À LA UNE non trouvée');
+            }
+            
+            const imageRowIndex = uneTitleIndex + template.substring(uneTitleIndex).indexOf(imageRowMatch[0]);
+            
+            // Trouver le <tr> qui contient le titre (après l'image)
+            const titleRowPattern = /<tr>\s*<td[^>]*height="70"[^>]*>[\s\S]*?<\/tr>/;
+            const titleRowMatch = template.substring(imageRowIndex).match(titleRowPattern);
+            
+            if (!titleRowMatch) {
+                alert('Impossible de trouver le titre de À LA UNE');
+                throw new Error('Titre À LA UNE non trouvé');
+            }
+            
+            const titleRowIndex = imageRowIndex + template.substring(imageRowIndex).indexOf(titleRowMatch[0]);
+            const titleRowEnd = titleRowIndex + titleRowMatch[0].length;
+            
+            // Construire les nouveaux TR pour image et titre
+            const newImageRow = `
+        <tr>
+            <td width="700" height="276">
+                <a href="${uneArticle.url}" target="_blank"><img src="${uneArticle.image}" alt="${escapeHtml(uneArticle.alt)}" border="0" width="700" height="276"></a>
+            </td>
+        </tr>`;
+            
+            const newTitleRow = `
+        <tr>
+            <td width="700" height="70" style="font-family: arial, sans-serif; font-size: 20px; font-weight: 700; text-align: center;">
+                <a href="${uneArticle.url}" target="_blank" class="texte" style="color: #335867; text-decoration: none;">${escapeHtml(uneArticle.title)}<br />
+                </a>
+            </td>
+        </tr>`;
+            
+            // Remplacer
+            const before = template.substring(0, imageRowIndex);
+            const after = template.substring(titleRowEnd);
+            
+            return before + newImageRow + newTitleRow + after;
+        }
+        
        function createFocusBlock(article) {
   return `<!--DEBUT ARTICLE 2-->
       <tr>
@@ -903,6 +1033,12 @@ articles = articles.map(a => ({
         document.getElementById('url-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 addUrl();
+            }
+        });
+        
+        document.getElementById('une-url-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                setUneUrl();
             }
         });
         
