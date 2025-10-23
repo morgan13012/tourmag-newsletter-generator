@@ -542,31 +542,35 @@
             }
             
             // Trouver la fin de cette ligne
-            const endOfLine = template.indexOf('\n', finArticle2Index);
-            const beforeArticles = template.substring(0, endOfLine + 1);
+            const endOfFinArticle2Line = template.indexOf('\n', finArticle2Index);
+            
+            // Garder tout jusqu'à la fin de la ligne <!--FIN ARTICLE 2-->
+            const beforeArticles = template.substring(0, endOfFinArticle2Line + 1);
+            
+            // Trouver le premier <!--DEBUT LIGNE 3 ARTICLES-->
+            const firstDebutIndex = template.indexOf('<!--DEBUT LIGNE 3 ARTICLES-->', finArticle2Index);
+            if (firstDebutIndex === -1) {
+                return template;
+            }
+            
+            // Trouver le début de la ligne du premier <!--DEBUT LIGNE 3 ARTICLES-->
+            let startOfFirstDebut = firstDebutIndex;
+            while (startOfFirstDebut > 0 && template[startOfFirstDebut - 1] !== '\n') {
+                startOfFirstDebut--;
+            }
+            
+            // Extraire la structure entre <!--FIN ARTICLE 2--> et <!--DEBUT LIGNE 3 ARTICLES-->
+            const structureBetween = template.substring(endOfFinArticle2Line + 1, startOfFirstDebut);
             
             // Trouver le début du footer (<!-- DEBUT FOOTER -->)
             const footerIndex = template.indexOf('<!-- DEBUT FOOTER -->');
             if (footerIndex === -1) {
-                // Si pas de footer marker, chercher d'autres marqueurs
-                const alternativeMarkers = [
-                    '<table width="700" border="0" align="center" cellpadding="0" cellspacing="0" style="background-color: #000000;text-align:center;">',
-                    '<td width="700" style="background-color : #335867;"'
-                ];
-                
-                for (const marker of alternativeMarkers) {
-                    const markerIndex = template.indexOf(marker, finArticle2Index);
-                    if (markerIndex !== -1) {
-                        return beforeArticles + template.substring(markerIndex);
-                    }
-                }
-                
                 return template;
             }
             
             const afterArticles = template.substring(footerIndex);
             
-            return beforeArticles + afterArticles;
+            return beforeArticles + structureBetween + afterArticles;
         }
         
         function showPreview(articles) {
@@ -622,15 +626,14 @@
                 blocks.push(block);
             }
             
-            // Insérer après <!--FIN ARTICLE 2-->
-            const insertionPoint = template.indexOf('<!--FIN ARTICLE 2-->');
-            if (insertionPoint === -1) {
-                throw new Error('Point d\'insertion non trouvé dans le template');
+            // Trouver où insérer (juste avant <!-- DEBUT FOOTER -->)
+            const footerIndex = template.indexOf('<!-- DEBUT FOOTER -->');
+            if (footerIndex === -1) {
+                throw new Error('Point d\'insertion (<!-- DEBUT FOOTER -->) non trouvé dans le template');
             }
             
-            const endOfLine = template.indexOf('\n', insertionPoint);
-            const beforeInsertion = template.substring(0, endOfLine + 1);
-            const afterInsertion = template.substring(endOfLine + 1);
+            const beforeInsertion = template.substring(0, footerIndex);
+            const afterInsertion = template.substring(footerIndex);
             
             return beforeInsertion + blocks.join('') + afterInsertion;
         }
