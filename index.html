@@ -573,16 +573,22 @@
                 const data = await response.json();
                 let articles = data.articles;
 
-				// 🔧 Nettoyage automatique du Poddle et du HTML du chapô
+				// 🔧 Nettoyage avancé du Poddle et du HTML dans le chapô
 articles = articles.map(a => ({
   ...a,
   chapo: a.chapo
-    .replace(/<script[\s\S]*?<\/script>/gi, '') // supprime les scripts
-    .replace(/PodlePlayer\.init[\s\S]*?;/gi, '') // supprime les appels Poddle
-    .replace(/<\/?[^>]+(>|$)/g, '') // supprime toutes les balises HTML
+    // Supprime tout bloc PodlePlayer, même multi-ligne
+    .replace(/PodlePlayer\.init\([\s\S]*?\}\s*\)/gi, '')
+    // Supprime les balises <script> complètes
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    // Supprime toute autre balise HTML
+    .replace(/<\/?[^>]+(>|$)/g, '')
+    // Nettoie les entités et espaces
     .replace(/&nbsp;/g, ' ')
+    .replace(/\s{2,}/g, ' ')
     .trim()
 }));
+
 
                 
                 updateProgress(60, 'Articles récupérés, génération de la newsletter...');
