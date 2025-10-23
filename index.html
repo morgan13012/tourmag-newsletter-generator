@@ -541,7 +541,7 @@
                 return template;
             }
             
-            // Trouver la fin de cette ligne
+            // Trouver la fin de la ligne <!--FIN ARTICLE 2-->
             const endOfFinArticle2Line = template.indexOf('\n', finArticle2Index);
             
             // Garder tout jusqu'à la fin de la ligne <!--FIN ARTICLE 2-->
@@ -559,8 +559,17 @@
                 startOfFirstDebut--;
             }
             
-            // Extraire la structure entre <!--FIN ARTICLE 2--> et <!--DEBUT LIGNE 3 ARTICLES-->
-            const structureBetween = template.substring(endOfFinArticle2Line + 1, startOfFirstDebut);
+            // Extraire la structure AVANT le premier bloc d'articles
+            const structureBefore = template.substring(endOfFinArticle2Line + 1, startOfFirstDebut);
+            
+            // Trouver le dernier <!--FIN LIGNE 3 ARTICLES-->
+            let lastFinIndex = template.lastIndexOf('<!--FIN LIGNE 3 ARTICLES-->');
+            if (lastFinIndex === -1) {
+                lastFinIndex = firstDebutIndex; // Si pas trouvé, on part du premier DEBUT
+            }
+            
+            // Trouver la fin de la ligne du dernier <!--FIN LIGNE 3 ARTICLES-->
+            const endOfLastFinLine = template.indexOf('\n', lastFinIndex);
             
             // Trouver le début du footer (<!-- DEBUT FOOTER -->)
             const footerIndex = template.indexOf('<!-- DEBUT FOOTER -->');
@@ -568,9 +577,12 @@
                 return template;
             }
             
-            const afterArticles = template.substring(footerIndex);
+            // Extraire la structure APRÈS le dernier bloc d'articles et AVANT le footer
+            const structureAfter = template.substring(endOfLastFinLine + 1, footerIndex);
             
-            return beforeArticles + structureBetween + afterArticles;
+            const afterFooter = template.substring(footerIndex);
+            
+            return beforeArticles + structureBefore + structureAfter + afterFooter;
         }
         
         function showPreview(articles) {
@@ -626,14 +638,20 @@
                 blocks.push(block);
             }
             
-            // Trouver où insérer (juste avant <!-- DEBUT FOOTER -->)
-            const footerIndex = template.indexOf('<!-- DEBUT FOOTER -->');
-            if (footerIndex === -1) {
-                throw new Error('Point d\'insertion (<!-- DEBUT FOOTER -->) non trouvé dans le template');
+            // Trouver où insérer : après la structure BEFORE (après le premier <!--DEBUT LIGNE 3 ARTICLES-->)
+            const firstDebutIndex = template.indexOf('<!--DEBUT LIGNE 3 ARTICLES-->');
+            if (firstDebutIndex === -1) {
+                throw new Error('Point d\'insertion (<!--DEBUT LIGNE 3 ARTICLES-->) non trouvé');
             }
             
-            const beforeInsertion = template.substring(0, footerIndex);
-            const afterInsertion = template.substring(footerIndex);
+            // Chercher le début de cette ligne
+            let startOfLine = firstDebutIndex;
+            while (startOfLine > 0 && template[startOfLine - 1] !== '\n') {
+                startOfLine--;
+            }
+            
+            const beforeInsertion = template.substring(0, startOfLine);
+            const afterInsertion = template.substring(startOfLine);
             
             return beforeInsertion + blocks.join('') + afterInsertion;
         }
