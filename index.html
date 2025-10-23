@@ -569,14 +569,33 @@
             // Extraire la section entre FIN ARTICLE 2 et DEBUT FOOTER
             const middleSection = template.substring(endOfFinLine + 1, footerIndex);
             
-            // Supprimer tous les blocs d'articles (entre <!--DEBUT LIGNE 3 ARTICLES--> et <!--FIN LIGNE 3 ARTICLES-->)
-            let cleaned = middleSection;
+            // Trouver le dernier <!--FIN LIGNE 3 ARTICLES-->
+            const lastFinArticle = middleSection.lastIndexOf('<!--FIN LIGNE 3 ARTICLES-->');
             
-            // Regex pour supprimer les blocs complets
-            const blockRegex = /<!--DEBUT LIGNE 3 ARTICLES-->[\s\S]*?<!--FIN LIGNE 3 ARTICLES-->\n*/g;
-            cleaned = cleaned.replace(blockRegex, '');
+            if (lastFinArticle === -1) {
+                // Pas de bloc d'articles à supprimer, on garde tout
+                return partAvant + middleSection + partApres;
+            }
             
-            return partAvant + cleaned + partApres;
+            // Trouver la fin de la ligne du dernier FIN LIGNE 3 ARTICLES
+            const endOfLastFin = middleSection.indexOf('\n', lastFinArticle);
+            
+            // Garder ce qui est APRÈS le dernier FIN LIGNE 3 ARTICLES (la pub, etc.)
+            const afterLastArticle = middleSection.substring(endOfLastFin + 1);
+            
+            // Extraire ce qui est AVANT le premier DEBUT LIGNE 3 ARTICLES
+            const firstDebut = middleSection.indexOf('<!--DEBUT LIGNE 3 ARTICLES-->');
+            let beforeFirstArticle = '';
+            if (firstDebut !== -1) {
+                // Trouver le début de la ligne
+                let startOfLine = firstDebut;
+                while (startOfLine > 0 && middleSection[startOfLine - 1] !== '\n') {
+                    startOfLine--;
+                }
+                beforeFirstArticle = middleSection.substring(0, startOfLine);
+            }
+            
+            return partAvant + beforeFirstArticle + afterLastArticle + partApres;
         }
         
         function showPreview(articles) {
