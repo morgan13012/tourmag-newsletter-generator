@@ -1,888 +1,99 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur Newsletter TourMaG</title>
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-        
-        .content {
-            padding: 40px;
-        }
-        
-        .section {
-            margin-bottom: 30px;
-        }
-        
-        .section-title {
-            font-size: 1.5em;
-            color: #667eea;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .section-title::before {
-            content: '';
-            width: 5px;
-            height: 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 3px;
-        }
-        
-        textarea {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            resize: vertical;
-            transition: border-color 0.3s;
-        }
-        
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .url-input-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        
-        input[type="text"] {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-        
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-        
-        .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-        
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #059669;
-        }
-        
-        .btn-block {
-            width: 100%;
-            padding: 15px;
-            font-size: 16px;
-        }
-        
-        .url-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 15px;
-        }
-        
-        .url-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            margin-bottom: 8px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            transition: background 0.2s;
-        }
-        
-        .url-item:hover {
-            background: #e9ecef;
-        }
-        
-        .url-item span {
-            flex: 1;
-            font-size: 13px;
-            color: #495057;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            margin-right: 10px;
-        }
-        
-        .url-item button {
-            padding: 5px 10px;
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        
-        .url-item button:hover {
-            background: #c82333;
-        }
-        
-        .progress-container {
-            display: none;
-            margin-top: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 30px;
-            background: #e0e0e0;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            width: 0%;
-            transition: width 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        .progress-text {
-            text-align: center;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .result-container {
-            display: none;
-            margin-top: 20px;
-        }
-        
-        .alert {
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .alert-success {
-            background: #d1fae5;
-            color: #065f46;
-            border: 2px solid #10b981;
-        }
-        
-        .alert-error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 2px solid #dc3545;
-        }
-        
-        .alert-warning {
-            background: #fef3c7;
-            color: #92400e;
-            border: 2px solid #f59e0b;
-        }
-        
-        .info-box {
-            background: #e0e7ff;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .info-box p {
-            margin: 5px 0;
-            color: #3730a3;
-            font-size: 14px;
-        }
-        
-        .info-box strong {
-            color: #4338ca;
-        }
-
-        .preview-container {
-            display: none;
-            margin-top: 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 20px;
-            background: #f8f9fa;
-        }
-
-        .preview-item {
-            display: flex;
-            gap: 15px;
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #dee2e6;
-        }
-
-        .preview-item img {
-            width: 150px;
-            height: 93px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
-
-        .preview-info {
-            flex: 1;
-        }
-
-        .preview-title {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .preview-url {
-            font-size: 12px;
-            color: #666;
-            word-break: break-all;
-        }
-
-        .loader {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Générateur Newsletter TourMaG (corrigé)</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:Segoe UI, sans-serif; background:linear-gradient(135deg,#667eea,#764ba2); padding:20px; min-height:100vh; }
+    .container { max-width:1200px; margin:auto; background:white; border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden; }
+    .header { background:linear-gradient(135deg,#667eea,#764ba2); color:white; padding:40px; text-align:center; }
+    .header h1 { font-size:2.5em; margin-bottom:10px; text-shadow:2px 2px 4px rgba(0,0,0,0.2); }
+    .content { padding:40px; }
+    textarea,input { width:100%; border:2px solid #ddd; border-radius:10px; padding:10px; font-family:monospace; }
+    button { padding:12px 25px; border:none; border-radius:10px; cursor:pointer; font-weight:bold; }
+    .btn-primary { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🚀 Générateur Newsletter TourMaG</h1>
-            <p>Automatisez la création de vos newsletters avec scraping intelligent</p>
-        </div>
-        
-        <div class="content">
-            <div class="info-box">
-                <p><strong>📋 Instructions :</strong></p>
-                <p>1. Collez votre template de newsletter HTML ci-dessous</p>
-                <p>2. Ajoutez les URLs des articles TourMaG (autant que nécessaire)</p>
-                <p>3. Cliquez sur "Générer la newsletter" - le scraping se fait automatiquement !</p>
-                <p>4. Copiez le résultat final</p>
-            </div>
-            
-            <div class="section">
-                <div class="section-title">1. Template de Newsletter</div>
-                <textarea id="newsletter-template" rows="10" placeholder="Collez ici le code HTML complet de votre newsletter..."></textarea>
-            </div>
-            
-            <div class="section">
-                <div class="section-title">2. URL du Focus (Article 2)</div>
-                <div class="info-box">
-                    <p><strong>ℹ️ Info :</strong> L'article Focus remplacera l'ARTICLE 2 de votre newsletter.</p>
-                    <p>Il affichera : image (338x276), titre, et chapô.</p>
-                </div>
-                <div class="url-input-container">
-                    <input type="text" id="focus-url-input" placeholder="https://www.tourmag.com/..." />
-                    <button class="btn btn-secondary" onclick="setFocusUrl()">Définir le Focus</button>
-                </div>
-                <div id="focus-url-display" class="url-list" style="display: none;"></div>
-            </div>
-            
-            <div class="section">
-                <div class="section-title">3. URLs des Blocs d'Articles (3 par ligne)</div>
-                <div class="url-input-container">
-                    <input type="text" id="url-input" placeholder="https://www.tourmag.com/..." />
-                    <button class="btn btn-secondary" onclick="addUrl()">Ajouter</button>
-                    <button class="btn btn-secondary" onclick="addMultipleUrls()">Ajouter plusieurs</button>
-                </div>
-                <div id="url-list" class="url-list" style="display: none;"></div>
-            </div>
-            
-            <button class="btn btn-primary btn-block" id="generate-btn" onclick="generateNewsletter()">
-                🎯 Générer la Newsletter
-            </button>
-            
-            <div id="progress-container" class="progress-container">
-                <div class="progress-bar">
-                    <div id="progress-fill" class="progress-fill">0%</div>
-                </div>
-                <div id="progress-text" class="progress-text">Préparation...</div>
-            </div>
-
-            <div id="preview-container" class="preview-container">
-                <div class="section-title">📰 Aperçu des Articles Scrapés</div>
-                <div id="preview-list"></div>
-            </div>
-            
-            <div id="result-container" class="result-container">
-                <div class="section-title">3. Newsletter Générée</div>
-                <textarea id="result-textarea" rows="15" readonly></textarea>
-                <button class="btn btn-success btn-block" onclick="copyResult()" style="margin-top: 10px;">
-                    📋 Copier le HTML
-                </button>
-            </div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>🚀 Générateur Newsletter TourMaG (corrigé)</h1>
+      <p>Nettoyage du Poddle, largeur ajustée, centrage des images</p>
     </div>
+    <div class="content">
+      <textarea id="newsletter-template" rows="10" placeholder="Collez votre template ici..."></textarea><br><br>
+      <input id="focus-url-input" placeholder="URL Focus (Article 2)" /><br><br>
+      <input id="url-input" placeholder="URLs Articles (séparées par des retours à la ligne)" /><br><br>
+      <button class="btn-primary" id="generate-btn" onclick="generateNewsletter()">🎯 Générer</button>
+      <div id="result-container" style="margin-top:20px;display:none;">
+        <textarea id="result-textarea" rows="15" readonly></textarea>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        const urls = [];
-        let focusUrl = null;
-        const API_URL = window.location.hostname === 'localhost' 
-            ? 'http://localhost:3000/api/scrape'
-            : '/api/scrape';
-        
-        function addUrl() {
-            const input = document.getElementById('url-input');
-            const url = input.value.trim();
-            
-            if (!url) {
-                alert('Veuillez entrer une URL');
-                return;
-            }
-            
-            if (!url.includes('tourmag.com')) {
-                alert('Veuillez entrer une URL TourMaG valide');
-                return;
-            }
-            
-            urls.push(url);
-            input.value = '';
-            updateUrlList();
-        }
-        
-        function setFocusUrl() {
-            const input = document.getElementById('focus-url-input');
-            const url = input.value.trim();
-            
-            if (!url) {
-                alert('Veuillez entrer une URL pour le Focus');
-                return;
-            }
-            
-            if (!url.includes('tourmag.com')) {
-                alert('Veuillez entrer une URL TourMaG valide');
-                return;
-            }
-            
-            focusUrl = url;
-            input.value = '';
-            updateFocusDisplay();
-        }
-        
-        function removeFocusUrl() {
-            focusUrl = null;
-            updateFocusDisplay();
-        }
-        
-        function updateFocusDisplay() {
-            const displayDiv = document.getElementById('focus-url-display');
-            
-            if (!focusUrl) {
-                displayDiv.style.display = 'none';
-                return;
-            }
-            
-            displayDiv.style.display = 'block';
-            displayDiv.innerHTML = `
-                <div class="url-item" style="background: #e0e7ff; border-left: 4px solid #667eea;">
-                    <span>🎯 Focus: ${focusUrl}</span>
-                    <button onclick="removeFocusUrl()">Supprimer</button>
-                </div>
-            `;
-        }
-        
-        function addMultipleUrls() {
-            const urlsText = prompt('Collez toutes les URLs (une par ligne) :');
-            if (!urlsText) return;
-            
-            const urlLines = urlsText.split('\n').map(u => u.trim()).filter(u => u);
-            urlLines.forEach(url => {
-                if (url.includes('tourmag.com')) {
-                    urls.push(url);
-                }
-            });
-            
-            updateUrlList();
-        }
-        
-        function removeUrl(index) {
-            urls.splice(index, 1);
-            updateUrlList();
-        }
-        
-        function updateUrlList() {
-            const listDiv = document.getElementById('url-list');
-            
-            if (urls.length === 0) {
-                listDiv.style.display = 'none';
-                return;
-            }
-            
-            listDiv.style.display = 'block';
-            listDiv.innerHTML = urls.map((url, index) => `
-                <div class="url-item">
-                    <span>${index + 1}. ${url}</span>
-                    <button onclick="removeUrl(${index})">Supprimer</button>
-                </div>
-            `).join('');
-        }
-        
-        async function generateNewsletter() {
-            const template = document.getElementById('newsletter-template').value;
-            
-            if (!template) {
-                alert('Veuillez coller votre template de newsletter');
-                return;
-            }
-            
-            if (!focusUrl && urls.length === 0) {
-                alert('Veuillez ajouter au moins un Focus ou des articles');
-                return;
-            }
-            
-            // Vérifier les commentaires requis
-            if (!template.includes('<!--DEBUT ARTICLE 2-->') || !template.includes('<!--FIN ARTICLE 2-->')) {
-                alert('⚠️ ERREUR: Votre template ne contient pas les commentaires ARTICLE 2.\n\nCes commentaires sont obligatoires.');
-                return;
-            }
-            
-            if (!template.includes('<!-- DEBUT FOOTER -->')) {
-                alert('⚠️ ERREUR: Votre template ne contient pas le commentaire "<!-- DEBUT FOOTER -->".\n\nCe commentaire est obligatoire.');
-                return;
-            }
-            
-            showProgress();
-            disableButton();
-            
-            try {
-                updateProgress(10, 'Scraping des articles en cours...');
-                
-                // Construire la liste complète des URLs à scraper
-                const allUrls = [];
-                if (focusUrl) allUrls.push(focusUrl);
-                allUrls.push(...urls);
-                
-                // Appel à l'API de scraping
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ urls: allUrls })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Erreur API: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                let articles = data.articles;
-                
-                updateProgress(60, 'Articles récupérés, génération de la newsletter...');
-                
-                // Séparer le Focus des articles normaux
-                let focusArticle = null;
-                let normalArticles = [];
-                
-                if (focusUrl) {
-                    focusArticle = articles[0];
-                    normalArticles = articles.slice(1);
-                } else {
-                    normalArticles = articles;
-                }
-                
-                // Afficher l'aperçu
-                showPreview(articles);
-                
-                updateProgress(70, 'Remplacement de l\'Article 2 par le Focus...');
-                
-                // Remplacer ARTICLE 2 par le Focus
-                let workingTemplate = template;
-                if (focusArticle) {
-                    workingTemplate = replaceFocusBlock(template, focusArticle);
-                }
-                
-                updateProgress(80, 'Insertion des blocs d\'articles...');
-                
-                // Supprimer les anciens blocs d'articles
-                const cleanTemplate = removeOldArticleBlocks(workingTemplate);
-                
-                // Générer la newsletter avec les nouveaux articles
-                const generatedHtml = insertArticles(cleanTemplate, normalArticles);
-                
-                updateProgress(100, 'Newsletter générée avec succès !');
-                
-                setTimeout(() => {
-                    showResult(generatedHtml);
-                    enableButton();
-                }, 500);
-                
-            } catch (error) {
-                console.error('Erreur:', error);
-                hideProgress();
-                enableButton();
-                alert('Erreur lors de la génération : ' + error.message);
-            }
-        }
-        
-        function removeOldArticleBlocks(template) {
-            // Normaliser les retours à la ligne
-            template = template.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-            
-            // Vérifier les commentaires requis
-            if (template.indexOf('<!--FIN ARTICLE 2-->') === -1) {
-                alert('ERREUR: "<!--FIN ARTICLE 2-->" non trouvé');
-                throw new Error('Commentaire manquant');
-            }
-            if (template.indexOf('<!--DEBUT LIGNE 3 ARTICLES-->') === -1) {
-                alert('ERREUR: "<!--DEBUT LIGNE 3 ARTICLES-->" non trouvé');
-                throw new Error('Commentaire manquant');
-            }
-            if (template.indexOf('<!--FIN LIGNE 3 ARTICLES-->') === -1) {
-                alert('ERREUR: "<!--FIN LIGNE 3 ARTICLES-->" non trouvé');
-                throw new Error('Commentaire manquant');
-            }
-            if (template.indexOf('<!-- DEBUT FOOTER -->') === -1) {
-                alert('ERREUR: "<!-- DEBUT FOOTER -->" non trouvé');
-                throw new Error('Commentaire manquant');
-            }
-            
-            // 1. Garder tout AVANT et INCLUANT <!--FIN ARTICLE 2-->
-            const finArticle2Index = template.indexOf('<!--FIN ARTICLE 2-->');
-            const afterFinArticle2 = template.indexOf('\n', finArticle2Index) + 1;
-            const part1 = template.substring(0, afterFinArticle2);
-            
-            // 2. Trouver le PREMIER <!--DEBUT LIGNE 3 ARTICLES-->
-            const firstDebutIndex = template.indexOf('<!--DEBUT LIGNE 3 ARTICLES-->', afterFinArticle2);
-            const afterFirstDebut = template.indexOf('\n', firstDebutIndex) + 1;
-            
-            // 3. Garder tout ENTRE <!--FIN ARTICLE 2--> et la FIN de la ligne <!--DEBUT LIGNE 3 ARTICLES--> (inclus)
-            const part2 = template.substring(afterFinArticle2, afterFirstDebut);
-            
-            // 4. Trouver le DERNIER <!--FIN LIGNE 3 ARTICLES-->
-            const lastFinIndex = template.lastIndexOf('<!--FIN LIGNE 3 ARTICLES-->');
-            const afterLastFin = template.indexOf('\n', lastFinIndex) + 1;
-            
-            // 5. Trouver <!-- DEBUT FOOTER -->
-            const footerIndex = template.indexOf('<!-- DEBUT FOOTER -->');
-            
-            // 6. Garder tout ENTRE le dernier <!--FIN LIGNE 3 ARTICLES--> et <!-- DEBUT FOOTER --> (structure après + pub)
-            const part3 = template.substring(afterLastFin, footerIndex);
-            
-            // 7. Garder tout APRÈS <!-- DEBUT FOOTER -->
-            const part4 = template.substring(footerIndex);
-            
-            // Résultat : part1 + part2 + [ICI ON INSÉRERA LES ARTICLES APRÈS le commentaire] + part3 + part4
-            return part1 + part2 + part3 + part4;
-        }
-        
-        function showPreview(articles) {
-            const previewContainer = document.getElementById('preview-container');
-            const previewList = document.getElementById('preview-list');
-            
-            previewList.innerHTML = articles.map((article, index) => `
-                <div class="preview-item">
-                    <img src="${article.image}" alt="${article.alt}" onerror="this.src='https://via.placeholder.com/150x93?text=Image+Non+Disponible'">
-                    <div class="preview-info">
-                        <div class="preview-title">${index + 1}. ${article.title}</div>
-                        <div class="preview-url">${article.url}</div>
-                    </div>
-                </div>
-            `).join('');
-            
-            previewContainer.style.display = 'block';
-        }
-        
-        function showProgress() {
-            document.getElementById('progress-container').style.display = 'block';
-            document.getElementById('result-container').style.display = 'none';
-            document.getElementById('preview-container').style.display = 'none';
-        }
-        
-        function hideProgress() {
-            document.getElementById('progress-container').style.display = 'none';
-        }
-        
-        function updateProgress(percent, text) {
-            document.getElementById('progress-fill').style.width = percent + '%';
-            document.getElementById('progress-fill').textContent = Math.round(percent) + '%';
-            document.getElementById('progress-text').textContent = text;
-        }
-        
-        function disableButton() {
-            const btn = document.getElementById('generate-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loader"></span>Génération en cours...';
-        }
-        
-        function enableButton() {
-            const btn = document.getElementById('generate-btn');
-            btn.disabled = false;
-            btn.innerHTML = '🎯 Générer la Newsletter';
-        }
-        
-        function insertArticles(template, articles) {
-            // Normaliser les retours à la ligne
-            template = template.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-            
-            // Créer les blocs de 3 articles
-            const blocks = [];
-            for (let i = 0; i < articles.length; i += 3) {
-                const block = createArticleBlock(articles.slice(i, i + 3));
-                blocks.push(block);
-            }
-            
-            // Trouver <!--DEBUT LIGNE 3 ARTICLES-->
-            const debutIndex = template.indexOf('<!--DEBUT LIGNE 3 ARTICLES-->');
-            
-            if (debutIndex === -1) {
-                alert('ERREUR: Impossible de trouver le point d\'insertion');
-                throw new Error('Point d\'insertion non trouvé');
-            }
-            
-            // Trouver la fin de la ligne du commentaire
-            const afterDebutLine = template.indexOf('\n', debutIndex) + 1;
-            
-            // Insérer APRÈS la ligne du commentaire
-            const before = template.substring(0, afterDebutLine);
-            const after = template.substring(afterDebutLine);
-            
-            return before + blocks.join('') + after;
-        }
-        
-        function createFocusBlock(article) {
-            return `<!--DEBUT ARTICLE 2-->
-                    <tr>
-                        <td>
-                            <table width="700" border="0" align="center" cellpadding="0" cellspacing="0" style="background-color: #ffffff;">
-                                <tr>
-                                    <td width="9" height="276"></td>
-                                    <td width="338" height="276">
-                                        <a href="${article.url}" target="_blank" class="img"><img src="${article.image}" alt="${escapeHtml(article.alt)}" border="0" width="338" height="276"></a>
-                                    </td>
-                                    <td width="14" height="276"></td>
-                                  <td width="330" style="font-family: arial, sans-serif; font-size: 16px; color:#61666d; vertical-align:top;"><span style="color: #579CFD; font-size: 25px;">FOCUS</span><br />
-                                    <a href="${article.url}" target="_blank" style="color:#325867; text-decoration:none; font-size:20px; font-weight: bold;">${escapeHtml(article.title)}</a><br />
-                                    
-${escapeHtml(article.chapo)}</td>
-                                    <td width="9"></td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td width="700" height="40">&nbsp;</td>
-                    </tr>
-                    <!--FIN ARTICLE 2-->`;
-        }
-        
-        function replaceFocusBlock(template, focusArticle) {
-            // Normaliser les retours à la ligne
-            template = template.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-            
-            // Trouver DEBUT ARTICLE 2
-            const debutArticle2 = template.indexOf('<!--DEBUT ARTICLE 2-->');
-            if (debutArticle2 === -1) {
-                alert('Impossible de trouver <!--DEBUT ARTICLE 2-->');
-                throw new Error('DEBUT ARTICLE 2 non trouvé');
-            }
-            
-            // Trouver FIN ARTICLE 2
-            const finArticle2 = template.indexOf('<!--FIN ARTICLE 2-->', debutArticle2);
-            if (finArticle2 === -1) {
-                alert('Impossible de trouver <!--FIN ARTICLE 2-->');
-                throw new Error('FIN ARTICLE 2 non trouvé');
-            }
-            
-            // Trouver la fin de la ligne FIN ARTICLE 2
-            const afterFinArticle2 = template.indexOf('\n', finArticle2) + 1;
-            
-            // Construire le nouveau template
-            const before = template.substring(0, debutArticle2);
-            const after = template.substring(afterFinArticle2);
-            const focusHtml = createFocusBlock(focusArticle);
-            
-            return before + focusHtml + '\n' + after;
-        }
-        
-        function createArticleBlock(articles) {
-            // Compléter avec des articles vides si moins de 3
-            while (articles.length < 3) {
-                articles.push({
-                    url: '#',
-                    title: '',
-                    image: 'https://via.placeholder.com/215x134',
-                    alt: ''
-                });
-            }
-            
-            return `
-					<!--DEBUT LIGNE 3 ARTICLES-->
-				  <tr style="vertical-align: top;">
-                        <td width="9" height="134">&nbsp;</td>
-                        <td width="215" height="134" class="border"><a href="${articles[0].url}" target="_blank" class="img"><img src="${articles[0].image}" alt="${escapeHtml(articles[0].alt)}" border="0" width="215" height="134">  <span class="texte1" style="font-family: arial, sans-serif; font-size: 18px; font-weight: 600; text-decoration: none; color:#44546e;vertical-align:top;">${escapeHtml(articles[0].title)}</span></a></td>
-                        <td width="19" height="134">&nbsp;</td>
-                        <td width="215" height="134" class="border"><a href="${articles[1].url}" target="_blank" class="img"><img src="${articles[1].image}" alt="${escapeHtml(articles[1].alt)}" border="0" width="215" height="134"><br />
-                          <span class="texte" style="font-family: arial, sans-serif; font-size: 18px; font-weight: 600; text-decoration: none; color:#44546e;vertical-align:top;">${escapeHtml(articles[1].title)}</span></a></td>
-                        <td width="19" height="134">&nbsp;</td>
-                        <td width="215" height="134" class="border"><a href="${articles[2].url}" target="_blank" class="img"><img src="${articles[2].image}" alt="${escapeHtml(articles[2].alt)}" border="0" width="215" height="134"><br />
-                          <span class="texte" style="font-family: arial, sans-serif; font-size: 18px; font-weight: 600; text-decoration: none; color:#44546e;vertical-align:top;">${escapeHtml(articles[2].title)}</span></a></td>
-                        <td width="19" height="134">&nbsp;</td>
-                    </tr>
-					<tr>
-                        <td class="none" width="9" height="10">&nbsp;</td>
-                        <td class="none" width="215" height="10">&nbsp;</td>
-                        <td class="none" width="19" height="10">&nbsp;</td>
-                        <td class="none" width="215" height="10">&nbsp;</td>
-                        <td class="none" width="19" height="10">&nbsp;</td>
-                        <td class="none" width="215" height="10">&nbsp;</td>
-                        <td class="none" width="19" height="10">&nbsp;</td>
-                    </tr>
-					<!--FIN LIGNE 3 ARTICLES-->
-`;
-        }
-        
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
-        }
-        
-        function showResult(html) {
-            hideProgress();
-            document.getElementById('result-container').style.display = 'block';
-            document.getElementById('result-textarea').value = html;
-            document.getElementById('result-textarea').scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        function copyResult() {
-            const textarea = document.getElementById('result-textarea');
-            textarea.select();
-            document.execCommand('copy');
-            
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.textContent = '✅ Copié !';
-            btn.style.background = '#059669';
-            
-            setTimeout(() => {
-                btn.textContent = originalText;
-                btn.style.background = '';
-            }, 2000);
-        }
-        
-        // Permettre l'ajout d'URL avec la touche Entrée
-        document.getElementById('url-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addUrl();
-            }
-        });
-        
-        document.getElementById('focus-url-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                setFocusUrl();
-            }
-        });
-    </script>
+<script>
+async function generateNewsletter() {
+  const tpl = document.getElementById('newsletter-template').value;
+  if (!tpl) return alert('Veuillez coller un template HTML.');
+
+  const focusUrl = document.getElementById('focus-url-input').value.trim();
+  const urls = document.getElementById('url-input').value.split(/\n+/).map(u=>u.trim()).filter(u=>u);
+  const all = focusUrl ? [focusUrl, ...urls] : urls;
+
+  const res = await fetch('/api/scrape', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ urls: all })
+  });
+  const data = await res.json();
+
+  // Nettoyage automatique du Poddle et HTML dans le chapô
+  const articles = data.articles.map(a => ({
+    ...a,
+    chapo: a.chapo
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/PodlePlayer\.init[\s\S]*?;/gi, '')
+      .replace(/<\/?[^>]+(>|$)/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .trim()
+  }));
+
+  let html = tpl;
+  if (focusUrl && articles.length) html = replaceFocusBlock(tpl, articles[0]);
+
+  document.getElementById('result-textarea').value = html;
+  document.getElementById('result-container').style.display = 'block';
+}
+
+// Bloc focus width=100% et image centrée
+function replaceFocusBlock(template, article) {
+  const start = template.indexOf('<!--DEBUT ARTICLE 2-->');
+  const end = template.indexOf('<!--FIN ARTICLE 2-->', start);
+  if (start === -1 || end === -1) return template;
+  const before = template.substring(0, start);
+  const after = template.substring(end + '<!--FIN ARTICLE 2-->'.length);
+  const focusHTML = `<!--DEBUT ARTICLE 2-->
+  <tr><td>
+  <table width="100%" align="center" style="max-width:700px;background:#fff;margin:0 auto;">
+  <tr>
+  <td width="9"></td>
+  <td width="335" align="center">
+    <a href="${article.url}" target="_blank">
+      <img src="${article.image}" alt="${article.alt}" width="335" height="276" style="display:block;margin:0 auto;">
+    </a>
+  </td>
+  <td width="14"></td>
+  <td width="326" style="font-family:arial,sans-serif;font-size:16px;color:#61666d;vertical-align:top;">
+    <span style="color:#579CFD;font-size:25px;">FOCUS</span><br>
+    <a href="${article.url}" target="_blank" style="color:#325867;text-decoration:none;font-size:20px;font-weight:bold;">${article.title}</a><br>
+    ${article.chapo}
+  </td>
+  <td width="9"></td>
+  </tr></table></td></tr><tr><td height="40">&nbsp;</td></tr><!--FIN ARTICLE 2-->`;
+  return before + focusHTML + after;
+}
+</script>
 </body>
 </html>
