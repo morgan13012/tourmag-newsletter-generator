@@ -547,11 +547,16 @@
             // Garder tout jusqu'à la fin de la ligne <!--FIN ARTICLE 2-->
             const beforeArticles = template.substring(0, endOfFinArticle2Line + 1);
             
-            // Trouver le premier <!--DEBUT LIGNE 3 ARTICLES-->
-            const firstDebutIndex = template.indexOf('<!--DEBUT LIGNE 3 ARTICLES-->', finArticle2Index);
-            if (firstDebutIndex === -1) {
-                return template;
+            // Trouver le premier <!--DEBUT LIGNE 3 ARTICLES--> (avec regex pour ignorer espaces/tabs)
+            const debutRegex = /<!--DEBUT LIGNE 3 ARTICLES-->/;
+            const match = template.substring(finArticle2Index).match(debutRegex);
+            
+            if (!match) {
+                alert('ERREUR: Le template ne contient pas le commentaire "<!--DEBUT LIGNE 3 ARTICLES-->".\n\nVérifiez que votre template contient bien ce commentaire (respectez les majuscules et les espaces).');
+                throw new Error('Point d\'insertion (<!--DEBUT LIGNE 3 ARTICLES-->) non trouvé dans le template');
             }
+            
+            const firstDebutIndex = finArticle2Index + match.index;
             
             // Trouver le début de la ligne du premier <!--DEBUT LIGNE 3 ARTICLES-->
             let startOfFirstDebut = firstDebutIndex;
@@ -565,7 +570,7 @@
             // Trouver le dernier <!--FIN LIGNE 3 ARTICLES-->
             let lastFinIndex = template.lastIndexOf('<!--FIN LIGNE 3 ARTICLES-->');
             if (lastFinIndex === -1) {
-                lastFinIndex = firstDebutIndex; // Si pas trouvé, on part du premier DEBUT
+                lastFinIndex = firstDebutIndex;
             }
             
             // Trouver la fin de la ligne du dernier <!--FIN LIGNE 3 ARTICLES-->
@@ -574,7 +579,8 @@
             // Trouver le début du footer (<!-- DEBUT FOOTER -->)
             const footerIndex = template.indexOf('<!-- DEBUT FOOTER -->');
             if (footerIndex === -1) {
-                return template;
+                alert('ERREUR: Le template ne contient pas le commentaire "<!-- DEBUT FOOTER -->".\n\nVérifiez que votre template contient bien ce commentaire.');
+                throw new Error('Commentaire <!-- DEBUT FOOTER --> non trouvé dans le template');
             }
             
             // Extraire la structure APRÈS le dernier bloc d'articles et AVANT le footer
@@ -638,11 +644,16 @@
                 blocks.push(block);
             }
             
-            // Trouver où insérer : après la structure BEFORE (après le premier <!--DEBUT LIGNE 3 ARTICLES-->)
-            const firstDebutIndex = template.indexOf('<!--DEBUT LIGNE 3 ARTICLES-->');
-            if (firstDebutIndex === -1) {
-                throw new Error('Point d\'insertion (<!--DEBUT LIGNE 3 ARTICLES-->) non trouvé');
+            // Trouver où insérer avec regex
+            const debutRegex = /<!--DEBUT LIGNE 3 ARTICLES-->/;
+            const match = template.match(debutRegex);
+            
+            if (!match) {
+                alert('ERREUR: Impossible de trouver le point d\'insertion.\n\nVérifiez que votre template contient "<!--DEBUT LIGNE 3 ARTICLES-->"');
+                throw new Error('Point d\'insertion non trouvé');
             }
+            
+            const firstDebutIndex = match.index;
             
             // Chercher le début de cette ligne
             let startOfLine = firstDebutIndex;
