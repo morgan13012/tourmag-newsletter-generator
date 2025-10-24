@@ -500,9 +500,33 @@
                 return;
             }
             
-            uneUrl = { url: url, forceMep: false };
+            uneUrl = { url: url, forceMep: false, positionX: 50, positionY: 50, imageUrl: null };
             input.value = '';
-            updateUneDisplay();
+            
+            // Scraper l'image pour l'aperçu
+            fetchUneImage();
+        }
+        
+        async function fetchUneImage() {
+            if (!uneUrl) return;
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ urls: [uneUrl.url] })
+                });
+                
+                const data = await response.json();
+                if (data.articles && data.articles[0]) {
+                    // Utiliser /grande/ pour À LA UNE
+                    uneUrl.imageUrl = data.articles[0].image.replace('/default/', '/grande/');
+                    updateUneDisplay();
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement de l\'image:', error);
+                updateUneDisplay();
+            }
         }
         
         function removeUneUrl() {
@@ -519,6 +543,36 @@
             }
             
             displayDiv.style.display = 'block';
+            
+            let imagePreview = '';
+            if (uneUrl.imageUrl) {
+                imagePreview = `
+                    <div style="margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px;">
+                        <div style="font-weight: 600; margin-bottom: 10px; color: #374151;">📸 Aperçu et recadrage (700x276) :</div>
+                        <div style="width: 700px; height: 276px; overflow: hidden; border: 2px solid #d1d5db; border-radius: 8px; margin-bottom: 15px;">
+                            <img id="une-preview-img" src="${uneUrl.imageUrl}" 
+                                 style="width: 100%; height: 100%; object-fit: cover; object-position: ${uneUrl.positionX}% ${uneUrl.positionY}%;">
+                        </div>
+                        <div style="display: flex; gap: 20px; margin-bottom: 10px;">
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #6b7280;">Position horizontale (X) :</label>
+                                <input type="range" min="0" max="100" value="${uneUrl.positionX}" 
+                                       oninput="updateUnePosition('x', this.value)" 
+                                       style="width: 100%; cursor: pointer;">
+                                <div style="text-align: center; font-size: 12px; color: #9ca3af;">${uneUrl.positionX}%</div>
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #6b7280;">Position verticale (Y) :</label>
+                                <input type="range" min="0" max="100" value="${uneUrl.positionY}" 
+                                       oninput="updateUnePosition('y', this.value)" 
+                                       style="width: 100%; cursor: pointer;">
+                                <div style="text-align: center; font-size: 12px; color: #9ca3af;">${uneUrl.positionY}%</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
             displayDiv.innerHTML = `
                 <div class="url-item" style="background: #fef3c7; border-left: 4px solid #f59e0b;">
                     <span>⭐ À LA UNE: ${uneUrl.url}</span>
@@ -527,8 +581,28 @@
                         <span style="font-size: 13px;">Ajouter force_mep</span>
                     </label>
                     <button onclick="removeUneUrl()">Supprimer</button>
+                    ${imagePreview}
                 </div>
             `;
+        }
+        
+        function updateUnePosition(axis, value) {
+            if (!uneUrl) return;
+            
+            if (axis === 'x') {
+                uneUrl.positionX = parseInt(value);
+            } else {
+                uneUrl.positionY = parseInt(value);
+            }
+            
+            // Mettre à jour uniquement l'image sans recharger tout le HTML
+            const img = document.getElementById('une-preview-img');
+            if (img) {
+                img.style.objectPosition = `${uneUrl.positionX}% ${uneUrl.positionY}%`;
+            }
+            
+            // Mettre à jour les affichages de pourcentage
+            updateUneDisplay();
         }
         
         function toggleUneForceMep() {
@@ -551,9 +625,33 @@
                 return;
             }
             
-            focusUrl = { url: url, forceMep: false };
+            focusUrl = { url: url, forceMep: false, positionX: 50, positionY: 50, imageUrl: null };
             input.value = '';
-            updateFocusDisplay();
+            
+            // Scraper l'image pour l'aperçu
+            fetchFocusImage();
+        }
+        
+        async function fetchFocusImage() {
+            if (!focusUrl) return;
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ urls: [focusUrl.url] })
+                });
+                
+                const data = await response.json();
+                if (data.articles && data.articles[0]) {
+                    // Utiliser /grande/ pour Focus
+                    focusUrl.imageUrl = data.articles[0].image.replace('/default/', '/grande/');
+                    updateFocusDisplay();
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement de l\'image:', error);
+                updateFocusDisplay();
+            }
         }
         
         function removeFocusUrl() {
@@ -570,6 +668,36 @@
             }
             
             displayDiv.style.display = 'block';
+            
+            let imagePreview = '';
+            if (focusUrl.imageUrl) {
+                imagePreview = `
+                    <div style="margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px;">
+                        <div style="font-weight: 600; margin-bottom: 10px; color: #374151;">📸 Aperçu et recadrage (338x276) :</div>
+                        <div style="width: 338px; height: 276px; overflow: hidden; border: 2px solid #d1d5db; border-radius: 8px; margin-bottom: 15px;">
+                            <img id="focus-preview-img" src="${focusUrl.imageUrl}" 
+                                 style="width: 100%; height: 100%; object-fit: cover; object-position: ${focusUrl.positionX}% ${focusUrl.positionY}%;">
+                        </div>
+                        <div style="display: flex; gap: 20px; margin-bottom: 10px;">
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #6b7280;">Position horizontale (X) :</label>
+                                <input type="range" min="0" max="100" value="${focusUrl.positionX}" 
+                                       oninput="updateFocusPosition('x', this.value)" 
+                                       style="width: 100%; cursor: pointer;">
+                                <div style="text-align: center; font-size: 12px; color: #9ca3af;">${focusUrl.positionX}%</div>
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 5px; font-size: 13px; color: #6b7280;">Position verticale (Y) :</label>
+                                <input type="range" min="0" max="100" value="${focusUrl.positionY}" 
+                                       oninput="updateFocusPosition('y', this.value)" 
+                                       style="width: 100%; cursor: pointer;">
+                                <div style="text-align: center; font-size: 12px; color: #9ca3af;">${focusUrl.positionY}%</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
             displayDiv.innerHTML = `
                 <div class="url-item" style="background: #e0e7ff; border-left: 4px solid #667eea;">
                     <span>🎯 Focus: ${focusUrl.url}</span>
@@ -578,8 +706,28 @@
                         <span style="font-size: 13px;">Ajouter force_mep</span>
                     </label>
                     <button onclick="removeFocusUrl()">Supprimer</button>
+                    ${imagePreview}
                 </div>
             `;
+        }
+        
+        function updateFocusPosition(axis, value) {
+            if (!focusUrl) return;
+            
+            if (axis === 'x') {
+                focusUrl.positionX = parseInt(value);
+            } else {
+                focusUrl.positionY = parseInt(value);
+            }
+            
+            // Mettre à jour uniquement l'image sans recharger tout le HTML
+            const img = document.getElementById('focus-preview-img');
+            if (img) {
+                img.style.objectPosition = `${focusUrl.positionX}% ${focusUrl.positionY}%`;
+            }
+            
+            // Mettre à jour les affichages de pourcentage
+            updateFocusDisplay();
         }
         
         function toggleFocusForceMep() {
@@ -733,6 +881,10 @@ articles = articles.map(a => ({
                     uneArticle = articles[currentIndex];
                     // Ajouter le tracking à l'URL avec force_mep si coché
                     uneArticle.url = addTrackingToUrl(uneArticle.url, newsletterType, publicationDate, uneUrl.forceMep);
+                    // Ajouter les positions de recadrage et utiliser /grande/
+                    uneArticle.positionX = uneUrl.positionX;
+                    uneArticle.positionY = uneUrl.positionY;
+                    uneArticle.image = uneArticle.image.replace('/default/', '/grande/');
                     currentIndex++;
                 }
                 
@@ -740,6 +892,10 @@ articles = articles.map(a => ({
                     focusArticle = articles[currentIndex];
                     // Ajouter le tracking à l'URL avec force_mep si coché
                     focusArticle.url = addTrackingToUrl(focusArticle.url, newsletterType, publicationDate, focusUrl.forceMep);
+                    // Ajouter les positions de recadrage et utiliser /grande/
+                    focusArticle.positionX = focusUrl.positionX;
+                    focusArticle.positionY = focusUrl.positionY;
+                    focusArticle.image = focusArticle.image.replace('/default/', '/grande/');
                     currentIndex++;
                 }
                 
@@ -1066,11 +1222,15 @@ articles = articles.map(a => ({
             const titleRowIndex = imageRowIndex + template.substring(imageRowIndex).indexOf(titleRowMatch[0]);
             const titleRowEnd = titleRowIndex + titleRowMatch[0].length;
             
-            // Construire les nouveaux TR pour image et titre
+            // Construire les nouveaux TR pour image et titre avec object-fit et object-position
+            const objectPosition = uneArticle.positionX !== undefined && uneArticle.positionY !== undefined 
+                ? `object-fit: cover; object-position: ${uneArticle.positionX}% ${uneArticle.positionY}%;`
+                : '';
+            
             const newImageRow = `
         <tr>
             <td width="700" height="276">
-                <a href="${uneArticle.url}" target="_blank"><img src="${uneArticle.image}" alt="${escapeHtml(uneArticle.alt)}" border="0" width="700" height="276"></a>
+                <a href="${uneArticle.url}" target="_blank"><img src="${uneArticle.image}" alt="${escapeHtml(uneArticle.alt)}" border="0" width="700" height="276" style="${objectPosition}"></a>
             </td>
         </tr>`;
             
@@ -1090,6 +1250,10 @@ articles = articles.map(a => ({
         }
         
        function createFocusBlock(article) {
+  const objectPosition = article.positionX !== undefined && article.positionY !== undefined 
+      ? `object-fit: cover; object-position: ${article.positionX}% ${article.positionY}%; `
+      : '';
+      
   return `<!--DEBUT ARTICLE 2-->
       <tr>
         <td>
@@ -1098,7 +1262,7 @@ articles = articles.map(a => ({
               <td width="9" height="276"></td>
               <td width="335" height="276" align="center" style="vertical-align:top;">
                 <a href="${article.url}" target="_blank" class="img">
-                  <img src="${article.image}" alt="${escapeHtml(article.alt)}" border="0" width="335" height="276" style="display:block;margin:0 auto;">
+                  <img src="${article.image}" alt="${escapeHtml(article.alt)}" border="0" width="335" height="276" style="${objectPosition}display:block;margin:0 auto;">
                 </a>
               </td>
               <td width="14" height="276"></td>
