@@ -566,13 +566,17 @@
             }
             
             displayDiv.innerHTML = `
-                <div class="url-item" style="background: #fef3c7; border-left: 4px solid #f59e0b;">
-                    <span>⭐ À LA UNE: ${uneUrl.url}</span>
-                    <label style="margin-left: 15px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
-                        <input type="checkbox" ${uneUrl.forceMep ? 'checked' : ''} onchange="toggleUneForceMep()" style="cursor: pointer;">
-                        <span style="font-size: 13px;">Ajouter force_mep</span>
-                    </label>
-                    <button onclick="removeUneUrl()">Supprimer</button>
+                <div class="url-item" style="background: #fef3c7; border-left: 4px solid #f59e0b; display: block;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <span>⭐ À LA UNE: ${uneUrl.url}</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="checkbox" ${uneUrl.forceMep ? 'checked' : ''} onchange="toggleUneForceMep()" style="cursor: pointer;">
+                                <span style="font-size: 13px;">Ajouter force_mep</span>
+                            </label>
+                            <button onclick="removeUneUrl()">Supprimer</button>
+                        </div>
+                    </div>
                     ${previewSection}
                 </div>
             `;
@@ -584,13 +588,17 @@
             // Afficher un loader
             const displayDiv = document.getElementById('une-url-display');
             const loaderHtml = `
-                <div class="url-item" style="background: #fef3c7; border-left: 4px solid #f59e0b;">
-                    <span>⭐ À LA UNE: ${uneUrl.url}</span>
-                    <label style="margin-left: 15px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
-                        <input type="checkbox" ${uneUrl.forceMep ? 'checked' : ''} onchange="toggleUneForceMep()" style="cursor: pointer;">
-                        <span style="font-size: 13px;">Ajouter force_mep</span>
-                    </label>
-                    <button onclick="removeUneUrl()">Supprimer</button>
+                <div class="url-item" style="background: #fef3c7; border-left: 4px solid #f59e0b; display: block;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <span>⭐ À LA UNE: ${uneUrl.url}</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="checkbox" ${uneUrl.forceMep ? 'checked' : ''} onchange="toggleUneForceMep()" style="cursor: pointer;">
+                                <span style="font-size: 13px;">Ajouter force_mep</span>
+                            </label>
+                            <button onclick="removeUneUrl()">Supprimer</button>
+                        </div>
+                    </div>
                     <div style="margin-top: 15px; padding: 20px; text-align: center; color: #6b7280;">
                         ⏳ Chargement de l'image...
                     </div>
@@ -727,13 +735,17 @@
             }
             
             displayDiv.innerHTML = `
-                <div class="url-item" style="background: #e0e7ff; border-left: 4px solid #667eea;">
-                    <span>🎯 Focus: ${focusUrl.url}</span>
-                    <label style="margin-left: 15px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
-                        <input type="checkbox" ${focusUrl.forceMep ? 'checked' : ''} onchange="toggleFocusForceMep()" style="cursor: pointer;">
-                        <span style="font-size: 13px;">Ajouter force_mep</span>
-                    </label>
-                    <button onclick="removeFocusUrl()">Supprimer</button>
+                <div class="url-item" style="background: #e0e7ff; border-left: 4px solid #667eea; display: block;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <span>🎯 Focus: ${focusUrl.url}</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="checkbox" ${focusUrl.forceMep ? 'checked' : ''} onchange="toggleFocusForceMep()" style="cursor: pointer;">
+                                <span style="font-size: 13px;">Ajouter force_mep</span>
+                            </label>
+                            <button onclick="removeFocusUrl()">Supprimer</button>
+                        </div>
+                    </div>
                     ${previewSection}
                 </div>
             `;
@@ -745,13 +757,17 @@
             // Afficher un loader
             const displayDiv = document.getElementById('focus-url-display');
             const loaderHtml = `
-                <div class="url-item" style="background: #e0e7ff; border-left: 4px solid #667eea;">
-                    <span>🎯 Focus: ${focusUrl.url}</span>
-                    <label style="margin-left: 15px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
-                        <input type="checkbox" ${focusUrl.forceMep ? 'checked' : ''} onchange="toggleFocusForceMep()" style="cursor: pointer;">
-                        <span style="font-size: 13px;">Ajouter force_mep</span>
-                    </label>
-                    <button onclick="removeFocusUrl()">Supprimer</button>
+                <div class="url-item" style="background: #e0e7ff; border-left: 4px solid #667eea; display: block;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <span>🎯 Focus: ${focusUrl.url}</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="checkbox" ${focusUrl.forceMep ? 'checked' : ''} onchange="toggleFocusForceMep()" style="cursor: pointer;">
+                                <span style="font-size: 13px;">Ajouter force_mep</span>
+                            </label>
+                            <button onclick="removeFocusUrl()">Supprimer</button>
+                        </div>
+                    </div>
                     <div style="margin-top: 15px; padding: 20px; text-align: center; color: #6b7280;">
                         ⏳ Chargement de l'image...
                     </div>
