@@ -524,7 +524,7 @@
             if (uneUrl.imageUrl) {
                 // L'image est chargée, afficher l'aperçu avec sliders
                 previewSection = `
-                    <div style="margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px; min-height: 450px;">
+                    <div style="margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px; min-height: 800px;">
                         <div style="font-weight: 600; margin-bottom: 10px; color: #374151;">📸 Aperçu et recadrage (700x276)</div>
                         <div style="width: 700px; height: 276px; overflow: hidden; border: 2px solid #d1d5db; border-radius: 8px; margin-bottom: 15px;">
                             <img id="une-preview-img" src="${uneUrl.imageUrl}" 
@@ -685,7 +685,7 @@
             if (focusUrl.imageUrl) {
                 // L'image est chargée, afficher l'aperçu avec sliders
                 previewSection = `
-                    <div style="margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px; min-height: 450px;">
+                    <div style="margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px; min-height: 800px;">
                         <div style="font-weight: 600; margin-bottom: 10px; color: #374151;">📸 Aperçu et recadrage (338x276)</div>
                         <div style="width: 338px; height: 276px; overflow: hidden; border: 2px solid #d1d5db; border-radius: 8px; margin-bottom: 15px;">
                             <img id="focus-preview-img" src="${focusUrl.imageUrl}" 
@@ -1326,10 +1326,10 @@ articles = articles.map(a => ({
       ? `object-fit: cover; object-position: ${article.positionX}% ${article.positionY}%; `
       : '';
   
-  // Formater le chapô avec les points de suspension
+  // Formater le chapô avec les points de suspension (SANS escapeHtml pour éviter les entités HTML)
   let formattedChapo = article.chapo.trim();
   if (formattedChapo.endsWith('.')) {
-      // Enlever le point final et ajouter ...
+      // Remplacer le point final par ...
       formattedChapo = formattedChapo.slice(0, -1) + '...';
   } else if (!formattedChapo.endsWith('...')) {
       // S'il n'y a pas de point et pas déjà de ..., ajouter ...
@@ -1351,7 +1351,7 @@ articles = articles.map(a => ({
               <td width="326" style="font-family:arial,sans-serif;font-size:16px;color:#61666d;vertical-align:top;">
                 <span style="color:#579CFD;font-size:25px;">FOCUS</span><br>
                 <a href="${article.url}" target="_blank" style="color:#325867;text-decoration:none;font-size:20px;font-weight:bold;">${escapeHtml(article.title)}</a><br>
-                ${escapeHtml(formattedChapo)}
+                ${formattedChapo}
               </td>
               <td width="9"></td>
             </tr>
