@@ -393,6 +393,7 @@
                         <option value="cruisemag">CruiseMaG</option>
                         <option value="latraveltech">La TravelTech</option>
                         <option value="luxurytravelmag">LuxuryTravelMaG</option>
+                        <option value="partezenfrance">Partez en France</option>
                     </select>
                 </div>
             </div>
@@ -1036,6 +1037,9 @@ articles = articles.map(a => ({
             // Normaliser les retours à la ligne
             template = template.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
             
+            // Récupérer le type de newsletter
+            const newsletterType = document.getElementById('newsletter-type').value;
+            
             // Vérifier les commentaires requis
             if (template.indexOf('<!--FIN ARTICLE 2-->') === -1) {
                 alert('ERREUR: "<!--FIN ARTICLE 2-->" non trouvé');
@@ -1049,9 +1053,21 @@ articles = articles.map(a => ({
                 alert('ERREUR: "<!--FIN LIGNE 3 ARTICLES-->" non trouvé');
                 throw new Error('Commentaire manquant');
             }
-            if (template.indexOf('<!-- DEBUT FOOTER -->') === -1) {
-                alert('ERREUR: "<!-- DEBUT FOOTER -->" non trouvé');
-                throw new Error('Commentaire manquant');
+            
+            // Pour Partez en France, chercher le marqueur spécifique
+            let footerMarker;
+            if (newsletterType === 'partezenfrance') {
+                footerMarker = '<!-- FIN RUBRIQUE PARTEZ EN FRANCE -->';
+                if (template.indexOf(footerMarker) === -1) {
+                    alert('ERREUR: "<!-- FIN RUBRIQUE PARTEZ EN FRANCE -->" non trouvé dans le template Partez en France');
+                    throw new Error('Commentaire manquant');
+                }
+            } else {
+                footerMarker = '<!-- DEBUT FOOTER -->';
+                if (template.indexOf(footerMarker) === -1) {
+                    alert('ERREUR: "<!-- DEBUT FOOTER -->" non trouvé');
+                    throw new Error('Commentaire manquant');
+                }
             }
             
             // 1. Garder tout AVANT et INCLUANT <!--FIN ARTICLE 2-->
@@ -1070,13 +1086,13 @@ articles = articles.map(a => ({
             const lastFinIndex = template.lastIndexOf('<!--FIN LIGNE 3 ARTICLES-->');
             const afterLastFin = template.indexOf('\n', lastFinIndex) + 1;
             
-            // 5. Trouver <!-- DEBUT FOOTER -->
-            const footerIndex = template.indexOf('<!-- DEBUT FOOTER -->');
+            // 5. Trouver le marqueur de fin (footer ou fin rubrique)
+            const footerIndex = template.indexOf(footerMarker);
             
-            // 6. Garder tout ENTRE le dernier <!--FIN LIGNE 3 ARTICLES--> et <!-- DEBUT FOOTER --> (structure après + pub)
+            // 6. Garder tout ENTRE le dernier <!--FIN LIGNE 3 ARTICLES--> et le marqueur de fin
             const part3 = template.substring(afterLastFin, footerIndex);
             
-            // 7. Garder tout APRÈS <!-- DEBUT FOOTER -->
+            // 7. Garder tout APRÈS le marqueur de fin
             const part4 = template.substring(footerIndex);
             
             // Résultat : part1 + part2 + [ICI ON INSÉRERA LES ARTICLES APRÈS le commentaire] + part3 + part4
@@ -1256,6 +1272,12 @@ articles = articles.map(a => ({
                     source: 'newsletterluxurytravelmag',
                     campaign: `luxurytravelmag-${americanDate}`,
                     forceMep: 'force_mep=304'
+                },
+                'partezenfrance': {
+                    medium: 'newsletterpartezenfrance',
+                    source: 'newsletterpartezenfrance',
+                    campaign: `partezenfrance-${americanDate}`,
+                    forceMep: 'force_mep=263'
                 }
             };
             
