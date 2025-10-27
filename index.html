@@ -902,20 +902,54 @@
                 return;
             }
             
-            if (!focusUrl && urls.length === 0) {
-                alert('Veuillez ajouter au moins un Focus ou des articles');
-                return;
+            // Récupérer le type de newsletter
+            const newsletterType = document.getElementById('newsletter-type').value;
+            
+            // Pour TravelJobs, vérifier qu'il y a au moins des articles
+            if (newsletterType === 'traveljobs') {
+                if (urls.length === 0) {
+                    alert('Veuillez ajouter au moins des articles pour TravelJobs');
+                    return;
+                }
+            } else {
+                // Pour les autres newsletters, au moins un Focus ou des articles
+                if (!focusUrl && urls.length === 0) {
+                    alert('Veuillez ajouter au moins un Focus ou des articles');
+                    return;
+                }
             }
             
-            // Vérifier les commentaires requis
-            if (!template.includes('<!--DEBUT ARTICLE 2-->') || !template.includes('<!--FIN ARTICLE 2-->')) {
-                alert('⚠️ ERREUR: Votre template ne contient pas les commentaires ARTICLE 2.\n\nCes commentaires sont obligatoires.');
-                return;
-            }
-            
-            if (!template.includes('<!-- DEBUT FOOTER -->')) {
-                alert('⚠️ ERREUR: Votre template ne contient pas le commentaire "<!-- DEBUT FOOTER -->".\n\nCe commentaire est obligatoire.');
-                return;
+            // Vérifier les commentaires requis selon le type de newsletter
+            if (newsletterType === 'traveljobs') {
+                // Pour TravelJobs, vérifier uniquement les marqueurs ACTUALITE
+                if (!template.includes('<!-- DEBUT ACTUALITE -->')) {
+                    alert('⚠️ ERREUR: Votre template TravelJobs ne contient pas le commentaire "<!-- DEBUT ACTUALITE -->".\n\nCe commentaire est obligatoire.');
+                    return;
+                }
+                if (!template.includes('<!-- FIN ACTUALITE -->')) {
+                    alert('⚠️ ERREUR: Votre template TravelJobs ne contient pas le commentaire "<!-- FIN ACTUALITE -->".\n\nCe commentaire est obligatoire.');
+                    return;
+                }
+            } else {
+                // Pour les autres newsletters, vérifier ARTICLE 2
+                if (!template.includes('<!--DEBUT ARTICLE 2-->') || !template.includes('<!--FIN ARTICLE 2-->')) {
+                    alert('⚠️ ERREUR: Votre template ne contient pas les commentaires ARTICLE 2.\n\nCes commentaires sont obligatoires.');
+                    return;
+                }
+                
+                // Pour Partez en France, vérifier son marqueur spécifique
+                if (newsletterType === 'partezenfrance') {
+                    if (!template.includes('<!-- FIN RUBRIQUE PARTEZ EN FRANCE -->')) {
+                        alert('⚠️ ERREUR: Votre template Partez en France ne contient pas le commentaire "<!-- FIN RUBRIQUE PARTEZ EN FRANCE -->".\n\nCe commentaire est obligatoire.');
+                        return;
+                    }
+                } else {
+                    // Pour les autres newsletters standards, vérifier DEBUT FOOTER
+                    if (!template.includes('<!-- DEBUT FOOTER -->')) {
+                        alert('⚠️ ERREUR: Votre template ne contient pas le commentaire "<!-- DEBUT FOOTER -->".\n\nCe commentaire est obligatoire.');
+                        return;
+                    }
+                }
             }
             
             showProgress();
@@ -923,9 +957,6 @@
             
             try {
                 updateProgress(5, 'Application de la date de publication...');
-                
-                // Récupérer le type de newsletter
-                const newsletterType = document.getElementById('newsletter-type').value;
                 
                 // Appliquer la date dans le template
                 let workingTemplate = replaceDateInTemplate(template, publicationDate);
@@ -937,8 +968,10 @@
                 
                 // Construire la liste complète des URLs à scraper (juste les URLs, pas les objets)
                 const allUrls = [];
-                if (uneUrl) allUrls.push(uneUrl.url);
-                if (focusUrl) allUrls.push(focusUrl.url);
+                if (newsletterType !== 'traveljobs') {
+                    if (uneUrl) allUrls.push(uneUrl.url);
+                    if (focusUrl) allUrls.push(focusUrl.url);
+                }
                 allUrls.push(...urls.map(u => u.url));
                 
                 // Appel à l'API de scraping
@@ -983,26 +1016,29 @@ articles = articles.map(a => ({
                 let normalArticles = [];
                 let currentIndex = 0;
                 
-                if (uneUrl) {
-                    uneArticle = articles[currentIndex];
-                    // Ajouter le tracking à l'URL avec force_mep si coché
-                    uneArticle.url = addTrackingToUrl(uneArticle.url, newsletterType, publicationDate, uneUrl.forceMep);
-                    // Ajouter les positions de recadrage et utiliser /grande/
-                    uneArticle.positionX = uneUrl.positionX;
-                    uneArticle.positionY = uneUrl.positionY;
-                    uneArticle.image = uneArticle.image.replace('/default/', '/grande/');
-                    currentIndex++;
-                }
-                
-                if (focusUrl) {
-                    focusArticle = articles[currentIndex];
-                    // Ajouter le tracking à l'URL avec force_mep si coché
-                    focusArticle.url = addTrackingToUrl(focusArticle.url, newsletterType, publicationDate, focusUrl.forceMep);
-                    // Ajouter les positions de recadrage et utiliser /grande/
-                    focusArticle.positionX = focusUrl.positionX;
-                    focusArticle.positionY = focusUrl.positionY;
-                    focusArticle.image = focusArticle.image.replace('/default/', '/grande/');
-                    currentIndex++;
+                // Pour TravelJobs, pas de À LA UNE ni FOCUS
+                if (newsletterType !== 'traveljobs') {
+                    if (uneUrl) {
+                        uneArticle = articles[currentIndex];
+                        // Ajouter le tracking à l'URL avec force_mep si coché
+                        uneArticle.url = addTrackingToUrl(uneArticle.url, newsletterType, publicationDate, uneUrl.forceMep);
+                        // Ajouter les positions de recadrage et utiliser /grande/
+                        uneArticle.positionX = uneUrl.positionX;
+                        uneArticle.positionY = uneUrl.positionY;
+                        uneArticle.image = uneArticle.image.replace('/default/', '/grande/');
+                        currentIndex++;
+                    }
+                    
+                    if (focusUrl) {
+                        focusArticle = articles[currentIndex];
+                        // Ajouter le tracking à l'URL avec force_mep si coché
+                        focusArticle.url = addTrackingToUrl(focusArticle.url, newsletterType, publicationDate, focusUrl.forceMep);
+                        // Ajouter les positions de recadrage et utiliser /grande/
+                        focusArticle.positionX = focusUrl.positionX;
+                        focusArticle.positionY = focusUrl.positionY;
+                        focusArticle.image = focusArticle.image.replace('/default/', '/grande/');
+                        currentIndex++;
+                    }
                 }
                 
                 normalArticles = articles.slice(currentIndex);
@@ -1015,14 +1051,14 @@ articles = articles.map(a => ({
                 // Afficher l'aperçu
                 showPreview(articles);
                 
-                // Remplacer À LA UNE
-                if (uneArticle) {
+                // Remplacer À LA UNE (sauf pour TravelJobs)
+                if (uneArticle && newsletterType !== 'traveljobs') {
                     updateProgress(65, 'Remplacement de À LA UNE...');
                     workingTemplate = replaceUneBlock(workingTemplate, uneArticle);
                 }
                 
-                // Remplacer ARTICLE 2 par le Focus
-                if (focusArticle) {
+                // Remplacer ARTICLE 2 par le Focus (sauf pour TravelJobs)
+                if (focusArticle && newsletterType !== 'traveljobs') {
                     updateProgress(70, 'Remplacement de l\'Article 2 par le Focus...');
                     workingTemplate = replaceFocusBlock(workingTemplate, focusArticle);
                 }
