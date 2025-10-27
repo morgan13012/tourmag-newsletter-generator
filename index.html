@@ -1566,10 +1566,10 @@ articles = articles.map(a => ({
                 });
             }
             
-            // 3️⃣ Remplacer /grande/ par /default/ pour les images des blocs de 3
+            // 3️⃣ Remplacer /default/ par /large_16_9/ pour les images des blocs de 3
             const processedArticles = articles.map(article => ({
                 ...article,
-                image: article.image ? article.image.replace('/grande/', '/default/') : 'https://via.placeholder.com/215x134'
+                image: article.image ? article.image.replace('/default/', '/large_16_9/') : 'https://via.placeholder.com/215x134'
             }));
             
             return `
@@ -1607,10 +1607,10 @@ articles = articles.map(a => ({
                 });
             }
             
-            // Remplacer /grande/ par /default/ pour les images
+            // Remplacer /default/ par /large_16_9/ pour les images
             const processedArticles = articles.map(article => ({
                 ...article,
-                image: article.image ? article.image.replace('/grande/', '/default/') : 'https://via.placeholder.com/215x134'
+                image: article.image ? article.image.replace('/default/', '/large_16_9/') : 'https://via.placeholder.com/215x134'
             }));
             
             // Format TravelJobs : uniquement les articles, sans le header
