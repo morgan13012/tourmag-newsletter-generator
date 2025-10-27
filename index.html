@@ -1668,8 +1668,19 @@ articles = articles.map(a => ({
   hideProgress();
 
   // 🔧 Correction : centrage automatique de toutes les images
-  const fixedHtml = html.replace(/<img([^>]+)>/gi, (match, attrs) => {
-    if (attrs.includes('display:block')) return match; // déjà centré
+  const fixedHtml = html.replace(/<img([^>]*?)>/gi, (match, attrs) => {
+    // Si l'image a déjà display:block, ne rien changer
+    if (attrs.includes('display:block')) return match;
+    
+    // Si l'image a déjà un attribut style, ajouter dedans
+    if (attrs.includes('style=')) {
+      return match.replace(/style=(["'])([^"']*)\1/i, (styleMatch, quote, styleContent) => {
+        // Ajouter display:block;margin:0 auto; au style existant
+        return `style=${quote}${styleContent};display:block;margin:0 auto;${quote}`;
+      });
+    }
+    
+    // Sinon, ajouter un nouvel attribut style avant la fermeture
     return `<img${attrs} style="display:block;margin:0 auto;">`;
   });
 
