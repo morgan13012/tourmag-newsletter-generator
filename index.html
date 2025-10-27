@@ -1461,7 +1461,7 @@ articles = articles.map(a => ({
             // Construire les nouveaux TR pour image et titre avec object-fit et object-position
             const objectPosition = uneArticle.positionX !== undefined && uneArticle.positionY !== undefined 
                 ? `object-fit: cover; object-position: ${uneArticle.positionX}% ${uneArticle.positionY}%;`
-                : '';
+                : 'object-fit: cover;';
             
             const newImageRow = `
         <tr>
@@ -1488,7 +1488,7 @@ articles = articles.map(a => ({
        function createFocusBlock(article) {
   const objectPosition = article.positionX !== undefined && article.positionY !== undefined 
       ? `object-fit: cover; object-position: ${article.positionX}% ${article.positionY}%; `
-      : '';
+      : 'object-fit: cover; ';
   
   // Formater le chapô avec les points de suspension (SANS escapeHtml pour éviter les entités HTML)
   let formattedChapo = article.chapo.trim();
