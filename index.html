@@ -1607,43 +1607,9 @@ articles = articles.map(a => ({
                 image: article.image.replace('/grande/', '/default/')
             }));
             
-            // Format TravelJobs : structure dans un seul <tr> avec 3 <td>
+            // Format TravelJobs : uniquement les articles, sans le header
             return `
-                <table width="700" border="0" align="center" cellpadding="0" cellspacing="0" style="background:#ffffff;">
-                      <tr>
-                          <td width="9" height="20" class="none"></td>
-                          <td width="682" height="20" class="none"></td>
-                          <td width="9" height="20" class="none"></td>
-                      </tr>
-                    
-                      <tr>
-                          <td width="9" height="4" class="none"></td>
-                          <td width="682" height="4" class="none"></td>
-                          <td width="9" height="4" class="none"></td>
-                      </tr>
-                      <tr>
-                          <td width="9">&nbsp;</td>
-                          <td width="682" style="font-family:Arial,Helvetica,sans-serif; color: #353639; text-align: center; text-transform: uppercase; letter-spacing: 25px; font-size: 28px;" class="titre">Actualités</td>
-                          <td width="9">&nbsp;</td>
-                      </tr>
-                      <tr>
-                          <td width="9" class="none"></td>
-                          <td width="682" class="none"></td>
-                          <td width="9" class="none"></td>
-                      </tr>
-                      <tr>
-                          <td width="9" height="1" class="none"></td>
-                          <td width="682" height="1" style="background-color: #444444;" class="trait-bot"></td>
-                          <td width="9" height="1" class="none"></td>
-                      </tr>
-                      <tr>
-                          <td width="9" height="5" class="none"></td>
-                          <td width="682" height="5" class="none"></td>
-                          <td width="9" height="5" class="none"></td>
-                      </tr>
-                  </table>
-				  
-			    <table width="700" border="0" align="center" cellpadding="0" cellspacing="0" style="background-color: #ffffff;">
+                <table width="700" border="0" align="center" cellpadding="0" cellspacing="0" style="background-color: #ffffff;">
                     <tr>
                       <td class="none" width="9" height="20">&nbsp;</td>
                       <td class="none" width="215" height="20">&nbsp;</td>
