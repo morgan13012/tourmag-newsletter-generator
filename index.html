@@ -1109,20 +1109,22 @@ articles = articles.map(a => ({
                 const debutActualiteIndex = template.indexOf('<!-- DEBUT ACTUALITE -->');
                 const finActualiteIndex = template.indexOf('<!-- FIN ACTUALITE -->');
                 
-                // Garder tout AVANT <!-- DEBUT ACTUALITE -->
-                const beforeActualite = template.substring(0, debutActualiteIndex);
-                
                 // Trouver la fin de la ligne <!-- DEBUT ACTUALITE -->
                 const afterDebutActualite = template.indexOf('\n', debutActualiteIndex) + 1;
                 
-                // Garder la ligne <!-- DEBUT ACTUALITE -->
-                const debutActualiteLine = template.substring(debutActualiteIndex, afterDebutActualite);
+                // Trouver le premier </table> APRÈS <!-- DEBUT ACTUALITE --> (c'est la fin du header "Actualités")
+                const firstTableCloseIndex = template.indexOf('</table>', afterDebutActualite);
+                const afterFirstTableClose = template.indexOf('\n', firstTableCloseIndex) + 1;
+                
+                // Garder tout AVANT <!-- FIN ACTUALITE -->
+                const beforeFinActualite = template.substring(0, afterFirstTableClose);
                 
                 // Garder tout APRÈS <!-- FIN ACTUALITE -->
                 const afterActualite = template.substring(finActualiteIndex);
                 
-                // Résultat : beforeActualite + debutActualiteLine + [ARTICLES ICI] + afterActualite
-                return beforeActualite + debutActualiteLine + afterActualite;
+                // Résultat : beforeFinActualite + [ARTICLES ICI] + afterActualite
+                // Cela préserve : tout avant DEBUT ACTUALITE + le header "Actualités" + supprime les anciens articles + garde tout après FIN ACTUALITE
+                return beforeFinActualite + afterActualite;
             }
             
             // Pour les autres newsletters
