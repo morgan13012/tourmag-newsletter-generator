@@ -1258,9 +1258,13 @@ articles = articles.map(a => ({
                 // Trouver la fin de la ligne du commentaire
                 const afterDebutLine = template.indexOf('\n', debutIndex) + 1;
                 
-                // Insérer APRÈS la ligne du commentaire
-                const before = template.substring(0, afterDebutLine);
-                const after = template.substring(afterDebutLine);
+                // Trouver le premier </table> APRÈS <!-- DEBUT ACTUALITE --> (fin du header "Actualités")
+                const firstTableCloseIndex = template.indexOf('</table>', afterDebutLine);
+                const afterFirstTableClose = template.indexOf('\n', firstTableCloseIndex) + 1;
+                
+                // Insérer APRÈS le header "Actualités"
+                const before = template.substring(0, afterFirstTableClose);
+                const after = template.substring(afterFirstTableClose);
                 
                 return before + blocks.join('') + after;
             }
