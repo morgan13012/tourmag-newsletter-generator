@@ -388,17 +388,18 @@
                     <p>Le tracking sera appliqué automatiquement à toutes les URLs.</p>
                 </div>
                 <div class="url-input-container">
-                    <select id="newsletter-type" style="flex: 1; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px; cursor: pointer;">
+                    <select id="newsletter-type" style="flex: 1; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px; cursor: pointer;" onchange="handleNewsletterTypeChange()">
                         <option value="airmag">AirMaG</option>
                         <option value="cruisemag">CruiseMaG</option>
                         <option value="latraveltech">La TravelTech</option>
                         <option value="luxurytravelmag">LuxuryTravelMaG</option>
                         <option value="partezenfrance">Partez en France</option>
+                        <option value="traveljobs">TravelJobs</option>
                     </select>
                 </div>
             </div>
             
-            <div class="section">
+            <div class="section" id="une-section">
                 <div class="section-title">4. URL de l'Article À LA UNE</div>
                 <div class="info-box">
                     <p><strong>ℹ️ Info :</strong> L'article À LA UNE sera affiché en grand format (700x276).</p>
@@ -411,7 +412,7 @@
                 <div id="une-url-display" class="url-list" style="display: none;"></div>
             </div>
             
-            <div class="section">
+            <div class="section" id="focus-section">
                 <div class="section-title">5. URL du Focus (Article 2)</div>
                 <div class="info-box">
                     <p><strong>ℹ️ Info :</strong> L'article Focus remplacera l'ARTICLE 2 de votre newsletter.</p>
@@ -467,6 +468,22 @@
         const API_URL = window.location.hostname === 'localhost' 
             ? 'http://localhost:3000/api/scrape'
             : '/api/scrape';
+        
+        // Fonction pour gérer le changement de type de newsletter
+        function handleNewsletterTypeChange() {
+            const newsletterType = document.getElementById('newsletter-type').value;
+            const uneSection = document.getElementById('une-section');
+            const focusSection = document.getElementById('focus-section');
+            
+            // Pour TravelJobs, masquer les sections À LA UNE et FOCUS
+            if (newsletterType === 'traveljobs') {
+                uneSection.style.display = 'none';
+                focusSection.style.display = 'none';
+            } else {
+                uneSection.style.display = 'block';
+                focusSection.style.display = 'block';
+            }
+        }
         
         function addUrl() {
             const input = document.getElementById('url-input');
@@ -1040,6 +1057,39 @@ articles = articles.map(a => ({
             // Récupérer le type de newsletter
             const newsletterType = document.getElementById('newsletter-type').value;
             
+            // Pour TravelJobs, structure différente
+            if (newsletterType === 'traveljobs') {
+                // Vérifier les marqueurs spécifiques à TravelJobs
+                if (template.indexOf('<!-- DEBUT ACTUALITE -->') === -1) {
+                    alert('ERREUR: "<!-- DEBUT ACTUALITE -->" non trouvé dans le template TravelJobs');
+                    throw new Error('Commentaire manquant');
+                }
+                if (template.indexOf('<!-- FIN ACTUALITE -->') === -1) {
+                    alert('ERREUR: "<!-- FIN ACTUALITE -->" non trouvé dans le template TravelJobs');
+                    throw new Error('Commentaire manquant');
+                }
+                
+                // Trouver les marqueurs
+                const debutActualiteIndex = template.indexOf('<!-- DEBUT ACTUALITE -->');
+                const finActualiteIndex = template.indexOf('<!-- FIN ACTUALITE -->');
+                
+                // Garder tout AVANT <!-- DEBUT ACTUALITE -->
+                const beforeActualite = template.substring(0, debutActualiteIndex);
+                
+                // Trouver la fin de la ligne <!-- DEBUT ACTUALITE -->
+                const afterDebutActualite = template.indexOf('\n', debutActualiteIndex) + 1;
+                
+                // Garder la ligne <!-- DEBUT ACTUALITE -->
+                const debutActualiteLine = template.substring(debutActualiteIndex, afterDebutActualite);
+                
+                // Garder tout APRÈS <!-- FIN ACTUALITE -->
+                const afterActualite = template.substring(finActualiteIndex);
+                
+                // Résultat : beforeActualite + debutActualiteLine + [ARTICLES ICI] + afterActualite
+                return beforeActualite + debutActualiteLine + afterActualite;
+            }
+            
+            // Pour les autres newsletters
             // Vérifier les commentaires requis
             if (template.indexOf('<!--FIN ARTICLE 2-->') === -1) {
                 alert('ERREUR: "<!--FIN ARTICLE 2-->" non trouvé');
@@ -1148,6 +1198,36 @@ articles = articles.map(a => ({
             // Normaliser les retours à la ligne
             template = template.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
             
+            const newsletterType = document.getElementById('newsletter-type').value;
+            
+            // Pour TravelJobs, format différent
+            if (newsletterType === 'traveljobs') {
+                // Créer les blocs au format TravelJobs
+                const blocks = [];
+                for (let i = 0; i < articles.length; i += 3) {
+                    const block = createTravelJobsBlock(articles.slice(i, i + 3));
+                    blocks.push(block);
+                }
+                
+                // Trouver <!-- DEBUT ACTUALITE -->
+                const debutIndex = template.indexOf('<!-- DEBUT ACTUALITE -->');
+                
+                if (debutIndex === -1) {
+                    alert('ERREUR: Impossible de trouver "<!-- DEBUT ACTUALITE -->"');
+                    throw new Error('Point d\'insertion non trouvé');
+                }
+                
+                // Trouver la fin de la ligne du commentaire
+                const afterDebutLine = template.indexOf('\n', debutIndex) + 1;
+                
+                // Insérer APRÈS la ligne du commentaire
+                const before = template.substring(0, afterDebutLine);
+                const after = template.substring(afterDebutLine);
+                
+                return before + blocks.join('') + after;
+            }
+            
+            // Pour les autres newsletters, logique existante
             // Créer les blocs de 3 articles
             const blocks = [];
             for (let i = 0; i < articles.length; i += 3) {
@@ -1278,6 +1358,12 @@ articles = articles.map(a => ({
                     source: 'newsletterpartezenfrance',
                     campaign: `partezenfrance-${americanDate}`,
                     forceMep: 'force_mep=263'
+                },
+                'traveljobs': {
+                    medium: 'newsletteremploi',
+                    source: 'newsletteremploi',
+                    campaign: `emploi-${americanDate}`,
+                    forceMep: 'force_mep=272'
                 }
             };
             
@@ -1465,6 +1551,94 @@ articles = articles.map(a => ({
                         <td class="none" width="19" height="10">&nbsp;</td>
                     </tr>
 					<!--FIN LIGNE 3 ARTICLES-->
+`;
+        }
+        
+        function createTravelJobsBlock(articles) {
+            // Compléter avec des articles vides si moins de 3
+            while (articles.length < 3) {
+                articles.push({
+                    url: '#',
+                    title: '',
+                    image: 'https://via.placeholder.com/215x134',
+                    alt: ''
+                });
+            }
+            
+            // Remplacer /grande/ par /default/ pour les images
+            const processedArticles = articles.map(article => ({
+                ...article,
+                image: article.image.replace('/grande/', '/default/')
+            }));
+            
+            // Format TravelJobs : structure dans un seul <tr> avec 3 <td>
+            return `
+                <table width="700" border="0" align="center" cellpadding="0" cellspacing="0" style="background:#ffffff;">
+                      <tr>
+                          <td width="9" height="20" class="none"></td>
+                          <td width="682" height="20" class="none"></td>
+                          <td width="9" height="20" class="none"></td>
+                      </tr>
+                    
+                      <tr>
+                          <td width="9" height="4" class="none"></td>
+                          <td width="682" height="4" class="none"></td>
+                          <td width="9" height="4" class="none"></td>
+                      </tr>
+                      <tr>
+                          <td width="9">&nbsp;</td>
+                          <td width="682" style="font-family:Arial,Helvetica,sans-serif; color: #353639; text-align: center; text-transform: uppercase; letter-spacing: 25px; font-size: 28px;" class="titre">Actualités</td>
+                          <td width="9">&nbsp;</td>
+                      </tr>
+                      <tr>
+                          <td width="9" class="none"></td>
+                          <td width="682" class="none"></td>
+                          <td width="9" class="none"></td>
+                      </tr>
+                      <tr>
+                          <td width="9" height="1" class="none"></td>
+                          <td width="682" height="1" style="background-color: #444444;" class="trait-bot"></td>
+                          <td width="9" height="1" class="none"></td>
+                      </tr>
+                      <tr>
+                          <td width="9" height="5" class="none"></td>
+                          <td width="682" height="5" class="none"></td>
+                          <td width="9" height="5" class="none"></td>
+                      </tr>
+                  </table>
+				  
+			    <table width="700" border="0" align="center" cellpadding="0" cellspacing="0" style="background-color: #ffffff;">
+                    <tr>
+                      <td class="none" width="9" height="20">&nbsp;</td>
+                      <td class="none" width="215" height="20">&nbsp;</td>
+                      <td class="none" width="19" height="20">&nbsp;</td>
+                      <td class="none" width="215" height="20">&nbsp;</td>
+                      <td class="none" width="19" height="20">&nbsp;</td>
+                      <td class="none" width="215" height="20">&nbsp;</td>
+                      <td class="none" width="19" height="20">&nbsp;</td>
+                    </tr>
+                      <tr style="vertical-align: top;">
+                        <td width="9" height="134">&nbsp;</td>
+                        <td width="215" height="134" class="border"><a href="${processedArticles[0].url}" target="_blank" class="img" style="text-decoration: none;"><img src="${processedArticles[0].image}" alt="${escapeHtml(processedArticles[0].alt)}" width="215" height="134" border="0" /> <br />
+                        <span class="texte" style="font-family: arial, sans-serif; font-size: 18px; font-weight: 600; text-decoration: none; color:#40403b;vertical-align:top;">${escapeHtml(processedArticles[0].title)}</span></a></td>
+                        <td width="19" height="134">&nbsp;</td>
+                        <td width="215" height="134" class="border"><a href="${processedArticles[1].url}" target="_blank" class="img" style="text-decoration: none;"><img src="${processedArticles[1].image}" alt="${escapeHtml(processedArticles[1].alt)}" width="215" height="134" border="0" /> <br />
+                        <span class="texte" style="font-family: arial, sans-serif; font-size: 18px; font-weight: 600; text-decoration: none; color:#40403b;vertical-align:top;">${escapeHtml(processedArticles[1].title)}</span></a></td>
+                        <td width="19" height="134">&nbsp;</td>
+                        <td width="215" height="134" class="border"><a href="${processedArticles[2].url}" target="_blank" class="img" style="text-decoration: none;"><img src="${processedArticles[2].image}" alt="${escapeHtml(processedArticles[2].alt)}" width="215" height="134" border="0" /> <br />
+                        <span class="texte" style="font-family: arial, sans-serif; font-size: 18px; font-weight: 600; text-decoration: none; color:#40403b;vertical-align:top;">${escapeHtml(processedArticles[2].title)}</span></a></td>
+                        <td width="19" height="134">&nbsp;</td>
+                      </tr>
+                       <tr>
+                      <td class="none" width="9" height="20">&nbsp;</td>
+                      <td class="none" width="215" height="20">&nbsp;</td>
+                      <td class="none" width="19" height="20">&nbsp;</td>
+                      <td class="none" width="215" height="20">&nbsp;</td>
+                      <td class="none" width="19" height="20">&nbsp;</td>
+                      <td class="none" width="215" height="20">&nbsp;</td>
+                      <td class="none" width="19" height="20">&nbsp;</td>
+                    </tr>
+                </table>
 `;
         }
         
