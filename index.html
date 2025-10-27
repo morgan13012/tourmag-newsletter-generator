@@ -633,8 +633,8 @@
                 
                 const data = await response.json();
                 if (data.articles && data.articles[0]) {
-                    // Utiliser /grande/ pour À LA UNE
-                    uneUrl.imageUrl = data.articles[0].image.replace('/default/', '/grande/');
+                    // Utiliser /large_16_9/ pour À LA UNE
+                    uneUrl.imageUrl = data.articles[0].image.replace('/default/', '/large_16_9/');
                     updateUneDisplay();
                 } else {
                     throw new Error('Image non trouvée');
@@ -802,8 +802,8 @@
                 
                 const data = await response.json();
                 if (data.articles && data.articles[0]) {
-                    // Utiliser /grande/ pour Focus
-                    focusUrl.imageUrl = data.articles[0].image.replace('/default/', '/grande/');
+                    // Utiliser /large_16_9/ pour Focus
+                    focusUrl.imageUrl = data.articles[0].image.replace('/default/', '/large_16_9/');
                     updateFocusDisplay();
                 } else {
                     throw new Error('Image non trouvée');
@@ -1022,10 +1022,10 @@ articles = articles.map(a => ({
                         uneArticle = articles[currentIndex];
                         // Ajouter le tracking à l'URL avec force_mep si coché
                         uneArticle.url = addTrackingToUrl(uneArticle.url, newsletterType, publicationDate, uneUrl.forceMep);
-                        // Ajouter les positions de recadrage et utiliser /grande/
+                        // Ajouter les positions de recadrage et utiliser /large_16_9/
                         uneArticle.positionX = uneUrl.positionX;
                         uneArticle.positionY = uneUrl.positionY;
-                        uneArticle.image = uneArticle.image.replace('/default/', '/grande/');
+                        uneArticle.image = uneArticle.image.replace('/default/', '/large_16_9/');
                         currentIndex++;
                     }
                     
@@ -1033,10 +1033,10 @@ articles = articles.map(a => ({
                         focusArticle = articles[currentIndex];
                         // Ajouter le tracking à l'URL avec force_mep si coché
                         focusArticle.url = addTrackingToUrl(focusArticle.url, newsletterType, publicationDate, focusUrl.forceMep);
-                        // Ajouter les positions de recadrage et utiliser /grande/
+                        // Ajouter les positions de recadrage et utiliser /large_16_9/
                         focusArticle.positionX = focusUrl.positionX;
                         focusArticle.positionY = focusUrl.positionY;
-                        focusArticle.image = focusArticle.image.replace('/default/', '/grande/');
+                        focusArticle.image = focusArticle.image.replace('/default/', '/large_16_9/');
                         currentIndex++;
                     }
                 }
@@ -1654,14 +1654,9 @@ articles = articles.map(a => ({
             // Gérer les cas undefined, null ou vides
             if (!text) return '';
             
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
+            // On ne convertit plus en entités HTML, on garde les caractères tels quels
+            // On échappe seulement < et > pour éviter les injections de balises
+            return text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
         
        function showResult(html) {
