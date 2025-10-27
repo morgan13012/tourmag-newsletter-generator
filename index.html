@@ -1670,8 +1670,10 @@ articles = articles.map(a => ({
     // Si l'image a déjà un attribut style, ajouter dedans
     if (attrs.includes('style=')) {
       return match.replace(/style=(["'])([^"']*)\1/i, (styleMatch, quote, styleContent) => {
+        // Nettoyer le styleContent (enlever ; final s'il existe)
+        const cleanContent = styleContent.trim().replace(/;+$/, '');
         // Ajouter display:block;margin:0 auto; au style existant
-        return `style=${quote}${styleContent};display:block;margin:0 auto;${quote}`;
+        return `style=${quote}${cleanContent};display:block;margin:0 auto;${quote}`;
       });
     }
     
