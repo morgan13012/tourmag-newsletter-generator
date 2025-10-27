@@ -633,8 +633,10 @@
                 
                 const data = await response.json();
                 if (data.articles && data.articles[0]) {
-                    // Utiliser /large_16_9/ pour À LA UNE
-                    uneUrl.imageUrl = data.articles[0].image.replace('/default/', '/large_16_9/');
+                    // Utiliser /large_16_9/ pour À LA UNE (remplacer /default/ ET /grande/)
+                    uneUrl.imageUrl = data.articles[0].image
+                        .replace('/default/', '/large_16_9/')
+                        .replace('/grande/', '/large_16_9/');
                     updateUneDisplay();
                 } else {
                     throw new Error('Image non trouvée');
@@ -802,8 +804,10 @@
                 
                 const data = await response.json();
                 if (data.articles && data.articles[0]) {
-                    // Utiliser /large_16_9/ pour Focus
-                    focusUrl.imageUrl = data.articles[0].image.replace('/default/', '/large_16_9/');
+                    // Utiliser /large_16_9/ pour Focus (remplacer /default/ ET /grande/)
+                    focusUrl.imageUrl = data.articles[0].image
+                        .replace('/default/', '/large_16_9/')
+                        .replace('/grande/', '/large_16_9/');
                     updateFocusDisplay();
                 } else {
                     throw new Error('Image non trouvée');
@@ -1025,7 +1029,9 @@ articles = articles.map(a => ({
                         // Ajouter les positions de recadrage et utiliser /large_16_9/
                         uneArticle.positionX = uneUrl.positionX;
                         uneArticle.positionY = uneUrl.positionY;
-                        uneArticle.image = uneArticle.image.replace('/default/', '/large_16_9/');
+                        uneArticle.image = uneArticle.image
+                            .replace('/default/', '/large_16_9/')
+                            .replace('/grande/', '/large_16_9/');
                         currentIndex++;
                     }
                     
@@ -1036,7 +1042,9 @@ articles = articles.map(a => ({
                         // Ajouter les positions de recadrage et utiliser /large_16_9/
                         focusArticle.positionX = focusUrl.positionX;
                         focusArticle.positionY = focusUrl.positionY;
-                        focusArticle.image = focusArticle.image.replace('/default/', '/large_16_9/');
+                        focusArticle.image = focusArticle.image
+                            .replace('/default/', '/large_16_9/')
+                            .replace('/grande/', '/large_16_9/');
                         currentIndex++;
                     }
                 }
@@ -1566,10 +1574,10 @@ articles = articles.map(a => ({
                 });
             }
             
-            // 3️⃣ Remplacer /default/ par /large_16_9/ pour les images des blocs de 3
+            // 3️⃣ Remplacer /default/ ET /grande/ par /large_16_9/ pour les images des blocs de 3
             const processedArticles = articles.map(article => ({
                 ...article,
-                image: article.image ? article.image.replace('/default/', '/large_16_9/') : 'https://via.placeholder.com/215x134'
+                image: article.image ? article.image.replace('/default/', '/large_16_9/').replace('/grande/', '/large_16_9/') : 'https://via.placeholder.com/215x134'
             }));
             
             return `
@@ -1607,10 +1615,10 @@ articles = articles.map(a => ({
                 });
             }
             
-            // Remplacer /default/ par /large_16_9/ pour les images
+            // Remplacer /default/ ET /grande/ par /large_16_9/ pour les images
             const processedArticles = articles.map(article => ({
                 ...article,
-                image: article.image ? article.image.replace('/default/', '/large_16_9/') : 'https://via.placeholder.com/215x134'
+                image: article.image ? article.image.replace('/default/', '/large_16_9/').replace('/grande/', '/large_16_9/') : 'https://via.placeholder.com/215x134'
             }));
             
             // Format TravelJobs : uniquement les articles, sans le header
