@@ -1569,7 +1569,7 @@ articles = articles.map(a => ({
             // 3️⃣ Remplacer /grande/ par /default/ pour les images des blocs de 3
             const processedArticles = articles.map(article => ({
                 ...article,
-                image: article.image.replace('/grande/', '/default/')
+                image: article.image ? article.image.replace('/grande/', '/default/') : 'https://via.placeholder.com/215x134'
             }));
             
             return `
@@ -1610,7 +1610,7 @@ articles = articles.map(a => ({
             // Remplacer /grande/ par /default/ pour les images
             const processedArticles = articles.map(article => ({
                 ...article,
-                image: article.image.replace('/grande/', '/default/')
+                image: article.image ? article.image.replace('/grande/', '/default/') : 'https://via.placeholder.com/215x134'
             }));
             
             // Format TravelJobs : uniquement les articles, sans le header
@@ -1651,6 +1651,9 @@ articles = articles.map(a => ({
         }
         
         function escapeHtml(text) {
+            // Gérer les cas undefined, null ou vides
+            if (!text) return '';
+            
             const map = {
                 '&': '&amp;',
                 '<': '&lt;',
