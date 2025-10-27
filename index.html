@@ -1662,9 +1662,13 @@ articles = articles.map(a => ({
             // Gérer les cas undefined, null ou vides
             if (!text) return '';
             
-            // On ne convertit plus en entités HTML, on garde les caractères tels quels
-            // On échappe seulement < et > pour éviter les injections de balises
-            return text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // Échapper TOUS les caractères qui peuvent casser les attributs HTML
+            return text
+                .replace(/&/g, '&amp;')   // En premier pour ne pas ré-échapper les autres entités
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')  // CRITIQUE : évite de casser les attributs HTML
+                .replace(/'/g, '&#39;');
         }
         
        function showResult(html) {
