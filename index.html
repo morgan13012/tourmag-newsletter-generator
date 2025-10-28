@@ -473,9 +473,10 @@
                 <p><strong>📋 Instructions :</strong></p>
                 <p>1. Collez votre template de newsletter HTML ci-dessous</p>
                 <p>2. Sélectionnez la date de publication et le type de newsletter</p>
-                <p>3. <strong>À LA UNE & FOCUS :</strong> Chargez l'image → Recadrez → Téléchargez le JPG → Uploadez sur votre FTP</p>
-                <p>4. Ajoutez les URLs des autres articles (blocs de 3)</p>
-                <p>5. Cliquez sur "Générer la newsletter" (les images À LA UNE et FOCUS utiliseront vos JPG uploadés)</p>
+                <p>3. <strong>À LA UNE & FOCUS :</strong> Entrez l'URL → Uploadez l'image manuellement → Recadrez → Téléchargez le JPG</p>
+                <p>4. Uploadez les JPG recadrés (une.jpg, article2.jpg) sur votre FTP</p>
+                <p>5. Ajoutez les URLs des autres articles (blocs de 3)</p>
+                <p>6. Générez la newsletter (utilise automatiquement vos JPG uploadés)</p>
             </div>
             
             <div class="section">
@@ -515,12 +516,14 @@
             <div class="section" id="une-section">
                 <div class="section-title">4. URL de l'Article À LA UNE (700x276)</div>
                 <div class="info-box">
-                    <p><strong>ℹ️ Info :</strong> Chargez l'image, recadrez-la, puis téléchargez "une.jpg"</p>
-                    <p>Uploadez ensuite manuellement ce fichier sur votre FTP avant de générer la newsletter</p>
+                    <p><strong>ℹ️ Info :</strong> Entrez l'URL de l'article, puis uploadez l'image manuellement pour la recadrer</p>
                 </div>
                 <div class="url-input-container">
                     <input type="text" id="une-url-input" placeholder="https://www.tourmag.com/..." />
-                    <button class="btn btn-secondary" onclick="loadUneImage()">📸 Charger l'image</button>
+                </div>
+                <div class="url-input-container">
+                    <input type="file" id="une-image-upload" accept="image/*" style="flex: 1;" />
+                    <button class="btn btn-secondary" onclick="loadUneImageFromFile()">📸 Charger et recadrer</button>
                 </div>
                 <div id="une-crop-container"></div>
             </div>
@@ -528,12 +531,14 @@
             <div class="section" id="focus-section">
                 <div class="section-title">5. URL du Focus / Article 2 (335x276)</div>
                 <div class="info-box">
-                    <p><strong>ℹ️ Info :</strong> Chargez l'image, recadrez-la, puis téléchargez "article2.jpg"</p>
-                    <p>Uploadez ensuite manuellement ce fichier sur votre FTP avant de générer la newsletter</p>
+                    <p><strong>ℹ️ Info :</strong> Entrez l'URL de l'article, puis uploadez l'image manuellement pour la recadrer</p>
                 </div>
                 <div class="url-input-container">
                     <input type="text" id="focus-url-input" placeholder="https://www.tourmag.com/..." />
-                    <button class="btn btn-secondary" onclick="loadFocusImage()">📸 Charger l'image</button>
+                </div>
+                <div class="url-input-container">
+                    <input type="file" id="focus-image-upload" accept="image/*" style="flex: 1;" />
+                    <button class="btn btn-secondary" onclick="loadFocusImageFromFile()">📸 Charger et recadrer</button>
                 </div>
                 <div id="focus-crop-container"></div>
             </div>
@@ -652,7 +657,6 @@
             container.appendChild(cropDiv);
             
             const img = new Image();
-            img.crossOrigin = 'anonymous';
             img.onload = function() {
                 const data = {
                     img: img,
@@ -743,84 +747,76 @@
             ctx.drawImage(data.img, offsetX, offsetY, drawW, drawH);
         }
         
-        // Charger l'image pour À LA UNE
-        async function loadUneImage() {
-            const url = document.getElementById('une-url-input').value.trim();
-            if (!url) {
-                alert('Veuillez entrer une URL');
+        // Charger l'image pour À LA UNE depuis un fichier uploadé
+        function loadUneImageFromFile() {
+            const urlInput = document.getElementById('une-url-input').value.trim();
+            const fileInput = document.getElementById('une-image-upload');
+            
+            if (!urlInput) {
+                alert('Veuillez entrer l\'URL de l\'article');
                 return;
             }
             
-            if (!url.includes('tourmag.com')) {
+            if (!urlInput.includes('tourmag.com')) {
                 alert('Veuillez entrer une URL TourMaG valide');
                 return;
             }
             
-            uneUrl = { url: url, forceMep: false };
-            
-            try {
-                showProgress();
-                updateProgress(20, 'Chargement de l\'image...');
-                
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ urls: [url] })
-                });
-                
-                const data = await response.json();
-                if (data.articles && data.articles[0]) {
-                    hideProgress();
-                    createCropEditor('une-crop-container', data.articles[0].image, 700, 276, 'une');
-                } else {
-                    hideProgress();
-                    alert('Impossible de charger l\'image');
-                }
-            } catch (error) {
-                console.error(error);
-                hideProgress();
-                alert('Erreur lors du chargement de l\'image');
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert('Veuillez sélectionner une image');
+                return;
             }
+            
+            uneUrl = { url: urlInput, forceMep: false };
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                createCropEditor('une-crop-container', e.target.result, 700, 276, 'une');
+            };
+            
+            reader.onerror = function() {
+                alert('Erreur lors de la lecture du fichier');
+            };
+            
+            reader.readAsDataURL(file);
         }
         
-        // Charger l'image pour FOCUS
-        async function loadFocusImage() {
-            const url = document.getElementById('focus-url-input').value.trim();
-            if (!url) {
-                alert('Veuillez entrer une URL');
+        // Charger l'image pour FOCUS depuis un fichier uploadé
+        function loadFocusImageFromFile() {
+            const urlInput = document.getElementById('focus-url-input').value.trim();
+            const fileInput = document.getElementById('focus-image-upload');
+            
+            if (!urlInput) {
+                alert('Veuillez entrer l\'URL de l\'article');
                 return;
             }
             
-            if (!url.includes('tourmag.com')) {
+            if (!urlInput.includes('tourmag.com')) {
                 alert('Veuillez entrer une URL TourMaG valide');
                 return;
             }
             
-            focusUrl = { url: url, forceMep: false };
-            
-            try {
-                showProgress();
-                updateProgress(20, 'Chargement de l\'image...');
-                
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ urls: [url] })
-                });
-                
-                const data = await response.json();
-                if (data.articles && data.articles[0]) {
-                    hideProgress();
-                    createCropEditor('focus-crop-container', data.articles[0].image, 335, 276, 'article2');
-                } else {
-                    hideProgress();
-                    alert('Impossible de charger l\'image');
-                }
-            } catch (error) {
-                console.error(error);
-                hideProgress();
-                alert('Erreur lors du chargement de l\'image');
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert('Veuillez sélectionner une image');
+                return;
             }
+            
+            focusUrl = { url: urlInput, forceMep: false };
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                createCropEditor('focus-crop-container', e.target.result, 335, 276, 'article2');
+            };
+            
+            reader.onerror = function() {
+                alert('Erreur lors de la lecture du fichier');
+            };
+            
+            reader.readAsDataURL(file);
         }
         
         // Télécharger l'image recadrée
