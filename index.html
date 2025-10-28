@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur Newsletter TourMaG</title>
+    <title>Générateur Newsletter TourMaG - Avec Recadrage d'Images</title>
     
     <style>
         * {
@@ -347,22 +347,135 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* Styles pour le crop editor */
+        .crop-editor {
+            margin-top: 20px;
+            padding: 25px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .crop-header {
+            font-weight: 600;
+            font-size: 16px;
+            color: #374151;
+            margin-bottom: 15px;
+        }
+        
+        .crop-canvas-container {
+            margin-bottom: 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+            display: inline-block;
+        }
+        
+        .crop-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .crop-control-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .crop-control-row label {
+            min-width: 120px;
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .crop-control-row input[type="range"] {
+            flex: 1;
+            height: 6px;
+            cursor: pointer;
+            -webkit-appearance: none;
+            background: #e5e7eb;
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .crop-control-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        
+        .crop-control-row input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .crop-value-display {
+            min-width: 80px;
+            text-align: right;
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .btn-download {
+            background: #10b981;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-download:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        .crop-info {
+            padding: 12px;
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #92400e;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🚀 Générateur Newsletter TourMaG</h1>
-            <p>Automatisez la création de vos newsletters avec scraping intelligent</p>
+            <p>Automatisez la création de vos newsletters avec recadrage d'images intégré</p>
         </div>
         
         <div class="content">
             <div class="info-box">
                 <p><strong>📋 Instructions :</strong></p>
                 <p>1. Collez votre template de newsletter HTML ci-dessous</p>
-                <p>2. Ajoutez les URLs des articles TourMaG (autant que nécessaire)</p>
-                <p>3. Cliquez sur "Générer la newsletter" - le scraping se fait automatiquement !</p>
-                <p>4. Copiez le résultat final</p>
+                <p>2. Sélectionnez la date de publication et le type de newsletter</p>
+                <p>3. <strong>À LA UNE & FOCUS :</strong> Chargez l'image → Recadrez → Téléchargez le JPG → Uploadez sur votre FTP</p>
+                <p>4. Ajoutez les URLs des autres articles (blocs de 3)</p>
+                <p>5. Cliquez sur "Générer la newsletter" (les images À LA UNE et FOCUS utiliseront vos JPG uploadés)</p>
             </div>
             
             <div class="section">
@@ -400,29 +513,29 @@
             </div>
             
             <div class="section" id="une-section">
-                <div class="section-title">4. URL de l'Article À LA UNE</div>
+                <div class="section-title">4. URL de l'Article À LA UNE (700x276)</div>
                 <div class="info-box">
-                    <p><strong>ℹ️ Info :</strong> L'article À LA UNE sera affiché en grand format (700x276).</p>
-                    <p>Il récupérera automatiquement : l'image, le titre et le copyright.</p>
+                    <p><strong>ℹ️ Info :</strong> Chargez l'image, recadrez-la, puis téléchargez "une.jpg"</p>
+                    <p>Uploadez ensuite manuellement ce fichier sur votre FTP avant de générer la newsletter</p>
                 </div>
                 <div class="url-input-container">
                     <input type="text" id="une-url-input" placeholder="https://www.tourmag.com/..." />
-                    <button class="btn btn-secondary" onclick="setUneUrl()">Définir À LA UNE</button>
+                    <button class="btn btn-secondary" onclick="loadUneImage()">📸 Charger l'image</button>
                 </div>
-                <div id="une-url-display" class="url-list" style="display: none;"></div>
+                <div id="une-crop-container"></div>
             </div>
             
             <div class="section" id="focus-section">
-                <div class="section-title">5. URL du Focus (Article 2)</div>
+                <div class="section-title">5. URL du Focus / Article 2 (335x276)</div>
                 <div class="info-box">
-                    <p><strong>ℹ️ Info :</strong> L'article Focus remplacera l'ARTICLE 2 de votre newsletter.</p>
-                    <p>Il affichera : image (338x276), titre, et chapô.</p>
+                    <p><strong>ℹ️ Info :</strong> Chargez l'image, recadrez-la, puis téléchargez "article2.jpg"</p>
+                    <p>Uploadez ensuite manuellement ce fichier sur votre FTP avant de générer la newsletter</p>
                 </div>
                 <div class="url-input-container">
                     <input type="text" id="focus-url-input" placeholder="https://www.tourmag.com/..." />
-                    <button class="btn btn-secondary" onclick="setFocusUrl()">Définir le Focus</button>
+                    <button class="btn btn-secondary" onclick="loadFocusImage()">📸 Charger l'image</button>
                 </div>
-                <div id="focus-url-display" class="url-list" style="display: none;"></div>
+                <div id="focus-crop-container"></div>
             </div>
             
             <div class="section">
@@ -462,12 +575,24 @@
     </div>
 
     <script>
-        const urls = []; // Sera un tableau d'objets {url: string, forceMep: boolean}
-        let focusUrl = null; // Sera un objet {url: string, forceMep: boolean}
-        let uneUrl = null; // Sera un objet {url: string, forceMep: boolean}
+        const urls = []; // Tableau d'objets {url: string, forceMep: boolean}
+        let focusUrl = null; // Objet {url: string, forceMep: boolean}
+        let uneUrl = null; // Objet {url: string, forceMep: boolean}
+        let uneData = null; // Données du crop pour À la une
+        let focusData = null; // Données du crop pour Focus
+        
         const API_URL = window.location.hostname === 'localhost' 
             ? 'http://localhost:3000/api/scrape'
             : '/api/scrape';
+        
+        // Mapping des types de newsletter vers leurs chemins d'images
+        const NEWSLETTER_PATHS = {
+            'airmag': 'news_airmag',
+            'cruisemag': 'news_cruisemag',
+            'latraveltech': 'news_latraveltech',
+            'luxurytravelmag': 'news_luxurytravelmag',
+            'partezenfrance': 'news_partezenfrance'
+        };
         
         // Fonction pour gérer le changement de type de newsletter
         function handleNewsletterTypeChange() {
@@ -484,6 +609,259 @@
                 focusSection.style.display = 'block';
             }
         }
+        
+        // ========== FONCTIONS DE CROP D'IMAGES ==========
+        
+        // Créer l'éditeur de crop avec canvas
+        function createCropEditor(containerId, imageUrl, canvasWidth, canvasHeight, filename) {
+            const container = document.getElementById(containerId);
+            
+            const cropDiv = document.createElement('div');
+            cropDiv.className = 'crop-editor';
+            cropDiv.innerHTML = `
+                <div class="crop-info">
+                    ⚠️ <strong>Important :</strong> Après recadrage, téléchargez "${filename}.jpg" et uploadez-le manuellement sur votre FTP avant de générer la newsletter.
+                </div>
+                <div class="crop-header">📸 Recadrage de l'image ${canvasWidth}x${canvasHeight}</div>
+                <div class="crop-canvas-container">
+                    <canvas id="${containerId}-canvas" width="${canvasWidth}" height="${canvasHeight}"></canvas>
+                </div>
+                <div class="crop-controls">
+                    <div class="crop-control-row">
+                        <label>🔍 Zoom :</label>
+                        <input type="range" id="${containerId}-zoom" min="100" max="300" value="100" step="1">
+                        <span class="crop-value-display" id="${containerId}-zoom-val">100%</span>
+                    </div>
+                    <div class="crop-control-row">
+                        <label>↔️ Position X :</label>
+                        <input type="range" id="${containerId}-x" min="0" max="100" value="50" step="0.1">
+                        <span class="crop-value-display" id="${containerId}-x-val">50.0%</span>
+                    </div>
+                    <div class="crop-control-row">
+                        <label>↕️ Position Y :</label>
+                        <input type="range" id="${containerId}-y" min="0" max="100" value="50" step="0.1">
+                        <span class="crop-value-display" id="${containerId}-y-val">50.0%</span>
+                    </div>
+                </div>
+                <button class="btn-download" onclick="downloadCroppedImage('${containerId}', '${filename}')">
+                    💾 Télécharger ${filename}.jpg
+                </button>
+            `;
+            
+            container.innerHTML = '';
+            container.appendChild(cropDiv);
+            
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                const data = {
+                    img: img,
+                    canvas: document.getElementById(`${containerId}-canvas`),
+                    zoom: 100,
+                    posX: 50,
+                    posY: 50
+                };
+                
+                if (containerId === 'une-crop-container') {
+                    uneData = data;
+                } else {
+                    focusData = data;
+                }
+                
+                updateCropCanvas(containerId);
+                setupCropControls(containerId);
+            };
+            
+            img.onerror = function() {
+                alert('Erreur de chargement de l\'image. Vérifiez que l\'URL est accessible.');
+            };
+            
+            img.src = imageUrl;
+        }
+        
+        // Configurer les événements des contrôles de crop
+        function setupCropControls(containerId) {
+            const zoomSlider = document.getElementById(`${containerId}-zoom`);
+            const xSlider = document.getElementById(`${containerId}-x`);
+            const ySlider = document.getElementById(`${containerId}-y`);
+            
+            zoomSlider.oninput = function() {
+                document.getElementById(`${containerId}-zoom-val`).textContent = this.value + '%';
+                const data = containerId === 'une-crop-container' ? uneData : focusData;
+                data.zoom = parseFloat(this.value);
+                updateCropCanvas(containerId);
+            };
+            
+            xSlider.oninput = function() {
+                document.getElementById(`${containerId}-x-val`).textContent = parseFloat(this.value).toFixed(1) + '%';
+                const data = containerId === 'une-crop-container' ? uneData : focusData;
+                data.posX = parseFloat(this.value);
+                updateCropCanvas(containerId);
+            };
+            
+            ySlider.oninput = function() {
+                document.getElementById(`${containerId}-y-val`).textContent = parseFloat(this.value).toFixed(1) + '%';
+                const data = containerId === 'une-crop-container' ? uneData : focusData;
+                data.posY = parseFloat(this.value);
+                updateCropCanvas(containerId);
+            };
+        }
+        
+        // Mettre à jour le canvas avec l'image recadrée
+        function updateCropCanvas(containerId) {
+            const data = containerId === 'une-crop-container' ? uneData : focusData;
+            if (!data) return;
+            
+            const ctx = data.canvas.getContext('2d');
+            const canvasW = data.canvas.width;
+            const canvasH = data.canvas.height;
+            
+            ctx.clearRect(0, 0, canvasW, canvasH);
+            
+            const scale = data.zoom / 100;
+            const imgW = data.img.width;
+            const imgH = data.img.height;
+            
+            const imgRatio = imgW / imgH;
+            const canvasRatio = canvasW / canvasH;
+            
+            let drawW, drawH;
+            
+            if (imgRatio > canvasRatio) {
+                drawH = canvasH * scale;
+                drawW = drawH * imgRatio;
+            } else {
+                drawW = canvasW * scale;
+                drawH = drawW / imgRatio;
+            }
+            
+            const maxX = drawW - canvasW;
+            const maxY = drawH - canvasH;
+            const offsetX = -(maxX * data.posX / 100);
+            const offsetY = -(maxY * data.posY / 100);
+            
+            ctx.drawImage(data.img, offsetX, offsetY, drawW, drawH);
+        }
+        
+        // Charger l'image pour À LA UNE
+        async function loadUneImage() {
+            const url = document.getElementById('une-url-input').value.trim();
+            if (!url) {
+                alert('Veuillez entrer une URL');
+                return;
+            }
+            
+            if (!url.includes('tourmag.com')) {
+                alert('Veuillez entrer une URL TourMaG valide');
+                return;
+            }
+            
+            uneUrl = { url: url, forceMep: false };
+            
+            try {
+                showProgress();
+                updateProgress(20, 'Chargement de l\'image...');
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ urls: [url] })
+                });
+                
+                const data = await response.json();
+                if (data.articles && data.articles[0]) {
+                    hideProgress();
+                    createCropEditor('une-crop-container', data.articles[0].image, 700, 276, 'une');
+                } else {
+                    hideProgress();
+                    alert('Impossible de charger l\'image');
+                }
+            } catch (error) {
+                console.error(error);
+                hideProgress();
+                alert('Erreur lors du chargement de l\'image');
+            }
+        }
+        
+        // Charger l'image pour FOCUS
+        async function loadFocusImage() {
+            const url = document.getElementById('focus-url-input').value.trim();
+            if (!url) {
+                alert('Veuillez entrer une URL');
+                return;
+            }
+            
+            if (!url.includes('tourmag.com')) {
+                alert('Veuillez entrer une URL TourMaG valide');
+                return;
+            }
+            
+            focusUrl = { url: url, forceMep: false };
+            
+            try {
+                showProgress();
+                updateProgress(20, 'Chargement de l\'image...');
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ urls: [url] })
+                });
+                
+                const data = await response.json();
+                if (data.articles && data.articles[0]) {
+                    hideProgress();
+                    createCropEditor('focus-crop-container', data.articles[0].image, 335, 276, 'article2');
+                } else {
+                    hideProgress();
+                    alert('Impossible de charger l\'image');
+                }
+            } catch (error) {
+                console.error(error);
+                hideProgress();
+                alert('Erreur lors du chargement de l\'image');
+            }
+        }
+        
+        // Télécharger l'image recadrée
+        function downloadCroppedImage(containerId, filename) {
+            const data = containerId === 'une-crop-container' ? uneData : focusData;
+            if (!data) return;
+            
+            const link = document.createElement('a');
+            link.download = `${filename}.jpg`;
+            link.href = data.canvas.toDataURL('image/jpeg', 0.95);
+            link.click();
+            
+            alert(`✅ Image "${filename}.jpg" téléchargée !\n\n⚠️ N'oubliez pas de l'uploader sur votre FTP avant de générer la newsletter.`);
+        }
+        
+        // Générer les URLs des images uploadées sur le serveur
+        function getImageUrls() {
+            const newsletterType = document.getElementById('newsletter-type').value;
+            const date = document.getElementById('publication-date').value;
+            
+            if (!date) {
+                return null;
+            }
+            
+            const [year, month, day] = date.split('-');
+            const formattedDate = `${day}_${month}_${year}`;
+            
+            const path = NEWSLETTER_PATHS[newsletterType];
+            if (!path) {
+                return null;
+            }
+            
+            const baseUrl = `https://www.tourmag.com/my/tourmag/${path}/${year}/${formattedDate}`;
+            
+            return {
+                une: `${baseUrl}/une.jpg`,
+                article2: `${baseUrl}/article2.jpg`
+            };
+        }
+        
+        // ========== FIN FONCTIONS DE CROP ==========
         
         function addUrl() {
             const input = document.getElementById('url-input');
@@ -1010,6 +1388,9 @@ articles = articles.map(a => ({
                 
                 updateProgress(60, 'Articles récupérés, génération de la newsletter...');
                 
+                // Récupérer les URLs des images uploadées sur le FTP
+                const imageUrls = getImageUrls();
+                
                 // Séparer À LA UNE, Focus et articles normaux
                 let uneArticle = null;
                 let focusArticle = null;
@@ -1022,9 +1403,10 @@ articles = articles.map(a => ({
                         uneArticle = articles[currentIndex];
                         // Ajouter le tracking à l'URL avec force_mep si coché
                         uneArticle.url = addTrackingToUrl(uneArticle.url, newsletterType, publicationDate, uneUrl.forceMep);
-                        // Ajouter les positions de recadrage (on garde l'URL d'origine avec /grande/)
-                        uneArticle.positionX = uneUrl.positionX;
-                        uneArticle.positionY = uneUrl.positionY;
+                        // Remplacer l'image par celle uploadée sur le FTP
+                        if (imageUrls && imageUrls.une) {
+                            uneArticle.image = imageUrls.une;
+                        }
                         currentIndex++;
                     }
                     
@@ -1032,9 +1414,10 @@ articles = articles.map(a => ({
                         focusArticle = articles[currentIndex];
                         // Ajouter le tracking à l'URL avec force_mep si coché
                         focusArticle.url = addTrackingToUrl(focusArticle.url, newsletterType, publicationDate, focusUrl.forceMep);
-                        // Ajouter les positions de recadrage (on garde l'URL d'origine avec /grande/)
-                        focusArticle.positionX = focusUrl.positionX;
-                        focusArticle.positionY = focusUrl.positionY;
+                        // Remplacer l'image par celle uploadée sur le FTP
+                        if (imageUrls && imageUrls.article2) {
+                            focusArticle.image = imageUrls.article2;
+                        }
                         currentIndex++;
                     }
                 }
@@ -1458,15 +1841,11 @@ articles = articles.map(a => ({
             const titleRowIndex = imageRowIndex + template.substring(imageRowIndex).indexOf(titleRowMatch[0]);
             const titleRowEnd = titleRowIndex + titleRowMatch[0].length;
             
-            // Construire les nouveaux TR pour image et titre avec object-fit et object-position
-            const objectPosition = uneArticle.positionX !== undefined && uneArticle.positionY !== undefined 
-                ? `object-fit: cover; object-position: ${uneArticle.positionX}% ${uneArticle.positionY}%;`
-                : 'object-fit: cover;';
-            
+            // Construire les nouveaux TR - l'image est déjà croppée, pas besoin de object-position
             const newImageRow = `
         <tr>
             <td width="700" height="276">
-                <a href="${uneArticle.url}" target="_blank"><img src="${uneArticle.image}" alt="${escapeHtml(uneArticle.alt)}" border="0" width="700" height="276" style="${objectPosition}"></a>
+                <a href="${uneArticle.url}" target="_blank"><img src="${uneArticle.image}" alt="${escapeHtml(uneArticle.alt)}" border="0" width="700" height="276" style="display:block;margin:0 auto;"></a>
             </td>
         </tr>`;
             
@@ -1486,10 +1865,6 @@ articles = articles.map(a => ({
         }
         
        function createFocusBlock(article) {
-  const objectPosition = article.positionX !== undefined && article.positionY !== undefined 
-      ? `object-fit: cover; object-position: ${article.positionX}% ${article.positionY}%; `
-      : 'object-fit: cover; ';
-  
   // Formater le chapô avec les points de suspension (SANS escapeHtml pour éviter les entités HTML)
   let formattedChapo = article.chapo.trim();
   // Supprimer TOUS les points à la fin (un ou plusieurs) avec ou sans espaces
@@ -1505,7 +1880,7 @@ articles = articles.map(a => ({
               <td width="9" height="276"></td>
               <td width="335" height="276" align="center" style="vertical-align:top;">
                 <a href="${article.url}" target="_blank" class="img">
-                  <img src="${article.image}" alt="${escapeHtml(article.alt)}" border="0" width="335" height="276" style="${objectPosition}display:block;margin:0 auto;">
+                  <img src="${article.image}" alt="${escapeHtml(article.alt)}" border="0" width="335" height="276" style="display:block;margin:0 auto;">
                 </a>
               </td>
               <td width="14" height="276"></td>
